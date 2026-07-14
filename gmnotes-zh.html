@@ -1,0 +1,1728 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GM Notes - GitHub Markdown Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+:root {
+  --paper: #faf7f2;
+  --surface: #ffffff;
+  --surface-hover: #f7f3ec;
+  --text: #3b3427;
+  --text-dim: #91897b;
+  --text-muted: #b8b0a4;
+  --border: #e8e2d8;
+  --border-light: #f0ebe3;
+  --accent: #c2843a;
+  --accent-light: #f5ebe0;
+  --accent-hover: #a66d2e;
+  --danger: #c5554a;
+  --danger-light: #fce8e6;
+  --shadow-sm: 0 1px 3px rgba(59,52,39,0.06);
+  --shadow-md: 0 4px 16px rgba(59,52,39,0.08);
+  --shadow-lg: 0 8px 32px rgba(59,52,39,0.12);
+  --radius: 10px;
+  --radius-sm: 6px;
+  --transition: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Noto Sans SC', -apple-system, sans-serif;
+  background: #f2ede5;
+  color: var(--text);
+  min-height: 100vh;
+  overflow: hidden;
+}
+#app {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  width: 300px;
+  min-width: 300px;
+  background: var(--paper);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  transition: width var(--transition);
+  position: relative;
+  z-index: 10;
+}
+.sidebar-header {
+  padding: 20px 20px 12px;
+  border-bottom: 1px solid var(--border-light);
+  flex-shrink: 0;
+}
+.sidebar-header h1 {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sidebar-header h1 .dot {
+  width: 8px; height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+  display: inline-block;
+}
+.sidebar-actions {
+  padding: 12px 20px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+.btn-new {
+  flex: 1;
+  height: 38px;
+  border: 1.5px dashed var(--border);
+  background: transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 13px;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all var(--transition);
+}
+.btn-new:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-light);
+}
+.btn-sync {
+  width: 38px; height: 38px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  transition: all var(--transition);
+  font-size: 16px;
+}
+.btn-sync:hover { border-color: var(--accent); color: var(--accent); }
+.btn-sync.spinning svg { animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.btn-config {
+  width: 38px; height: 38px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  transition: all var(--transition);
+  font-size: 16px;
+}
+.btn-config:hover { border-color: var(--text-dim); color: var(--text); }
+.btn-config.configured { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
+.search-box {
+  padding: 8px 20px 12px;
+  flex-shrink: 0;
+}
+.search-input {
+  width: 100%;
+  height: 34px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0 12px;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 13px;
+  background: var(--surface);
+  color: var(--text);
+  outline: none;
+  transition: border-color var(--transition);
+}
+.search-input:focus { border-color: var(--accent); }
+.search-input::placeholder { color: var(--text-muted); }
+
+.note-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 12px 12px;
+}
+.note-list::-webkit-scrollbar { width: 4px; }
+.note-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.note-item {
+  padding: 14px 14px;
+  margin-bottom: 4px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition);
+  border: 1.5px solid transparent;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+.note-item:hover { background: var(--surface-hover); }
+.note-item.active {
+  background: var(--surface);
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+}
+.note-item .note-info { flex: 1; min-width: 0; }
+.note-item .note-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+.note-item .note-meta {
+  font-size: 9px;
+  color: var(--text-muted);
+  display: flex;
+  gap: 8px;
+}
+.note-item .note-delete {
+  opacity: 0;
+  width: 26px; height: 26px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all var(--transition);
+  margin-top: 2px;
+}
+.note-item:hover .note-delete { opacity: 1; }
+.note-item .note-delete:hover { color: var(--danger); background: var(--danger-light); }
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+}
+.empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.5; }
+.empty-state .empty-text { font-size: 13px; line-height: 1.6; }
+
+/* ===== MAIN ===== */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  overflow: hidden;
+}
+.main-header {
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  gap: 16px;
+}
+.title-input {
+  flex: 1;
+  border: none;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--text);
+  background: transparent;
+  outline: none;
+  padding: 4px 0;
+}
+.title-input::placeholder { color: var(--text-muted); font-weight: 400; font-family: 'Noto Sans SC', sans-serif; }
+.title-input:disabled { opacity: 0.4; }
+
+.mode-tabs {
+  display: flex;
+  gap: 0;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.mode-tab {
+  padding: 6px 16px;
+  font-size: 12px;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.mode-tab:first-child { border-right: 1px solid var(--border); }
+.mode-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.mode-tab:hover:not(.active) { background: var(--surface-hover); }
+
+.editor-area {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+.editor-pane {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+  border: none;
+  font-family: 'JetBrains Mono', 'Noto Sans SC', monospace;
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--text);
+  background: var(--surface);
+  resize: none;
+  outline: none;
+}
+.editor-pane::placeholder { color: var(--text-muted); font-family: 'Noto Sans SC', sans-serif; }
+.editor-pane:disabled { opacity: 0.3; cursor: not-allowed; }
+.editor-pane::-webkit-scrollbar { width: 6px; }
+.editor-pane::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+.preview-pane {
+  flex: 1;
+  padding: 24px 32px;
+  overflow-y: auto;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 15px;
+  line-height: 1.85;
+  color: var(--text);
+}
+.preview-pane::-webkit-scrollbar { width: 6px; }
+.preview-pane::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+.preview-pane h1 { font-size: 1.8em; font-weight: 700; margin: 0.6em 0 0.3em; padding-bottom: 0.2em; border-bottom: 2px solid var(--border-light); }
+.preview-pane h2 { font-size: 1.4em; font-weight: 600; margin: 0.6em 0 0.3em; }
+.preview-pane h3 { font-size: 1.15em; font-weight: 600; margin: 0.5em 0 0.2em; }
+.preview-pane p { margin: 0.4em 0; }
+.preview-pane ul, .preview-pane ol { padding-left: 1.5em; margin: 0.4em 0; }
+.preview-pane li { margin: 0.15em 0; }
+.preview-pane code {
+  background: #f4efe7;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.88em;
+  color: #8b6914;
+}
+.preview-pane pre {
+  background: #f7f3ec;
+  padding: 16px 20px;
+  border-radius: var(--radius-sm);
+  overflow-x: auto;
+  margin: 0.6em 0;
+  border: 1px solid var(--border-light);
+}
+.preview-pane pre code {
+  background: none;
+  padding: 0;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.preview-pane blockquote {
+  border-left: 3px solid var(--accent);
+  padding: 8px 16px;
+  margin: 0.6em 0;
+  background: var(--accent-light);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  color: var(--text-dim);
+}
+.preview-pane a { color: var(--accent); text-decoration: none; }
+.preview-pane a:hover { text-decoration: underline; }
+.preview-pane table { border-collapse: collapse; width: 100%; margin: 0.6em 0; }
+.preview-pane th, .preview-pane td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; }
+.preview-pane th { background: var(--paper); font-weight: 600; }
+.preview-pane img { max-width: 100%; border-radius: var(--radius-sm); }
+
+.welcome {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  gap: 8px;
+}
+.welcome .welcome-icon { font-size: 56px; opacity: 0.3; }
+.welcome .welcome-title { font-family: 'Noto Serif SC', serif; font-size: 18px; font-weight: 600; }
+.welcome .welcome-sub { font-size: 13px; }
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(59,52,39,0.35);
+  backdrop-filter: blur(3px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  width: 440px;
+  max-width: 92vw;
+  padding: 28px 32px;
+  animation: modalIn 0.2s ease;
+}
+@keyframes modalIn { from { opacity: 0; transform: translateY(12px) scale(0.97); } }
+.modal h2 {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: var(--text);
+}
+.modal .form-group {
+  margin-bottom: 16px;
+}
+.modal label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.modal input {
+  width: 100%;
+  height: 40px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0 12px;
+  font-family: 'JetBrains Mono', 'Noto Sans SC', monospace;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--paper);
+  outline: none;
+  transition: border-color var(--transition);
+}
+.modal input:focus { border-color: var(--accent); background: var(--surface); }
+.modal .form-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+.modal-footer button {
+  height: 38px;
+  padding: 0 20px;
+  border-radius: var(--radius-sm);
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+}
+.modal-footer button:hover { border-color: var(--text-dim); color: var(--text); }
+.modal-footer button.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.modal-footer button.btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 24px;
+  border-radius: 24px;
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 200;
+  animation: toastIn 0.25s ease;
+  pointer-events: none;
+  box-shadow: var(--shadow-md);
+}
+.toast.success { background: #e8f5e9; color: #2e7d32; }
+.toast.error { background: #fce4e4; color: #c62828; }
+.toast.info { background: #e3f2fd; color: #1565c0; }
+@keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(8px); } }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .sidebar { width: 260px; min-width: 260px; }
+  .sidebar-header h1 { font-size: 18px; }
+  .editor-pane, .preview-pane { padding: 16px; font-size: 13px; }
+  .main-header { padding: 10px 16px; }
+  .title-input { font-size: 16px; }
+}
+
+/* ===== AI WRITING ASSISTANT ===== */
+.ai-drawer-overlay {
+  position: fixed; inset: 0;
+  background: rgba(59,52,39,0.35);
+  backdrop-filter: blur(3px);
+  z-index: 100;
+  display: flex;
+  justify-content: flex-end;
+}
+.ai-drawer {
+  width: 480px;
+  max-width: 95vw;
+  height: 100vh;
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  animation: slideInRight 0.25s ease;
+  overflow: hidden;
+}
+@keyframes slideInRight { from { transform: translateX(100%); } }
+.ai-drawer-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.ai-drawer-header h2 {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ai-drawer-header .close-btn {
+  width: 32px; height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  transition: all var(--transition);
+}
+.ai-drawer-header .close-btn:hover { background: var(--surface-hover); color: var(--text); }
+.ai-drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.ai-section {
+  padding: 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+}
+.ai-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ai-function-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.ai-function-btn {
+  height: 42px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all var(--transition);
+}
+.ai-function-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-light);
+}
+.ai-function-btn.active {
+  border-color: var(--accent);
+  color: #fff;
+  background: var(--accent);
+}
+
+/* Word Count Selector */
+.ai-wordcount-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ai-wordcount-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-dim);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.ai-wordcount-grid {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+}
+.ai-wordcount-btn {
+  height: 32px;
+  padding: 0 12px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-dim);
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+.ai-wordcount-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-light);
+}
+.ai-wordcount-btn.active {
+  border-color: var(--accent);
+  color: #fff;
+  background: var(--accent);
+}
+
+.ai-prompt-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ai-prompt-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-dim);
+}
+.ai-prompt-input {
+  width: 100%;
+  min-height: 100px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  font-family: 'JetBrains Mono', 'Noto Sans SC', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--surface);
+  resize: vertical;
+  outline: none;
+  transition: border-color var(--transition);
+}
+.ai-prompt-input:focus { border-color: var(--accent); }
+.ai-prompt-input::placeholder { color: var(--text-muted); }
+.ai-result-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ai-result-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.ai-result-content {
+  flex: 1;
+  min-height: 150px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  font-family: 'JetBrains Mono', 'Noto Sans SC', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--paper);
+  overflow-y: auto;
+  white-space: pre-wrap;
+}
+.ai-result-content.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+.ai-drawer-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.ai-drawer-footer button {
+  height: 38px;
+  padding: 0 20px;
+  border-radius: var(--radius-sm);
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+}
+.ai-drawer-footer button:hover { border-color: var(--text-dim); color: var(--text); }
+.ai-drawer-footer button.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.ai-drawer-footer button.btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.ai-drawer-footer button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===== INSERT MODE MODAL ===== */
+.insert-mode-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.insert-mode-option {
+  padding: 12px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.insert-mode-option:hover {
+  border-color: var(--accent);
+  background: var(--accent-light);
+}
+.insert-mode-option .option-icon {
+  width: 32px; height: 32px;
+  border-radius: 6px;
+  background: var(--paper);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.insert-mode-option .option-text {
+  flex: 1;
+}
+.insert-mode-option .option-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.insert-mode-option .option-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ===== AI CONFIG MODAL ===== */
+.ai-config-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+  font-size: 12px;
+}
+.ai-config-status.connected {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+}
+.ai-config-status.disconnected {
+  background: #fce4e4;
+  color: #c62828;
+  border: 1px solid #ffcdd2;
+}
+.ai-config-status .status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.ai-config-status.connected .status-dot { background: #4caf50; }
+.ai-config-status.disconnected .status-dot { background: #f44336; }
+
+/* AI button in main header */
+.btn-ai {
+  height: 34px;
+  padding: 0 14px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+.btn-ai:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-light);
+}
+.btn-ai .ai-icon { font-size: 14px; }
+
+/* Streaming cursor */
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+.streaming-cursor::after {
+  content: '▊';
+  animation: blink 0.8s step-end infinite;
+  color: var(--accent);
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h1><span class="dot"></span>GM Notes</h1>
+    </div>
+    <div class="sidebar-actions">
+      <button class="btn-new" @click="createNote" :disabled="!githubReady">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        新建笔记
+      </button>
+      <button class="btn-sync" :class="{ spinning: syncing }" @click="syncFromGitHub" :disabled="!githubReady" title="从 GitHub 同步">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      </button>
+      <button class="btn-config" :class="{ configured: githubReady }" @click="showConfig = true" title="GitHub 配置">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+    <div class="search-box">
+      <input class="search-input" type="text" v-model="searchQuery" placeholder="搜索笔记..." />
+    </div>
+    <div class="note-list">
+      <div v-if="filteredNotes.length === 0" class="empty-state">
+        <div class="empty-icon">📝</div>
+        <div class="empty-text" v-if="!githubReady">请先配置 GitHub 连接</div>
+        <div class="empty-text" v-else-if="notes.length === 0">还没有笔记<br>点击「新建笔记」开始</div>
+        <div class="empty-text" v-else>未找到匹配的笔记</div>
+      </div>
+      <div v-for="note in filteredNotes" :key="note.id"
+           class="note-item"
+           :class="{ active: currentNote && currentNote.id === note.id }"
+           @click="selectNote(note)">
+        <div class="note-info">
+          <div class="note-title">{{ note.title || '无标题' }}</div>
+          <div class="note-meta">
+            <span>{{ formatDate(note.updatedAt) }}</span>
+          </div>
+        </div>
+        <button class="note-delete" @click.stop="deleteNote(note)" title="删除">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <template v-if="currentNote">
+      <div class="main-header">
+        <input class="title-input" type="text" v-model="editingTitle" @input="onTitleChange" placeholder="笔记标题" />
+        <button v-if="!previewMode" class="btn-ai" @click="openAiDrawer" title="AI 写作助手">
+          <span class="ai-icon">✨</span> AI 助手
+        </button>
+        <div class="mode-tabs">
+          <button class="mode-tab" :class="{ active: !previewMode }" @click="previewMode = false">编辑</button>
+          <button class="mode-tab" :class="{ active: previewMode }" @click="previewMode = true">预览</button>
+        </div>
+      </div>
+      <div class="editor-area">
+        <textarea v-show="!previewMode" class="editor-pane" v-model="editingContent" @input="onContentChange" placeholder="在此输入 Markdown 内容..."></textarea>
+        <div v-show="previewMode" class="preview-pane" v-html="renderedMarkdown"></div>
+      </div>
+    </template>
+    <div v-else class="welcome">
+      <div class="welcome-icon">✍️</div>
+      <div class="welcome-title">InkSpace 记事本</div>
+      <div class="welcome-sub">选择笔记开始编辑，或创建一篇新笔记</div>
+    </div>
+  </main>
+
+  <!-- GITHUB CONFIG MODAL -->
+  <div class="modal-overlay" v-if="showConfig" @click.self="showConfig = false">
+    <div class="modal">
+      <h2>GitHub 连接配置</h2>
+      <div class="form-group">
+        <label>Personal Access Token</label>
+        <input type="password" v-model="configForm.token" placeholder="ghp_xxxxxxxxxxxx" />
+        <div class="form-hint">需要 repo 权限。在 GitHub Settings → Developer settings → Tokens 创建</div>
+      </div>
+      <div class="form-group">
+        <label>仓库 Owner</label>
+        <input type="text" v-model="configForm.owner" placeholder="例如 octocat" />
+      </div>
+      <div class="form-group">
+        <label>仓库名称</label>
+        <input type="text" v-model="configForm.repo" placeholder="例如 my-notes" />
+      </div>
+      <div class="form-group">
+        <label>存储路径（可选）</label>
+        <input type="text" v-model="configForm.path" placeholder="默认为仓库根目录" />
+        <div class="form-hint">笔记将以独立 .md 文件保存在此路径下，如 data/</div>
+      </div>
+      <div class="modal-footer">
+        <button @click="clearConfig">清除配置</button>
+        <button class="btn-primary" @click="saveConfig">保存并连接</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI CONFIG MODAL -->
+  <div class="modal-overlay" style="z-index: 110;" v-if="showAiConfig" @click.self="showAiConfig = false">
+    <div class="modal">
+      <h2>AI 写作助手配置</h2>
+      <div class="ai-config-status" :class="aiConfig.tested ? (aiConfig.testSuccess ? 'connected' : 'disconnected') : 'disconnected'">
+        <span class="status-dot"></span>
+        <span v-if="aiConfig.tested && aiConfig.testSuccess">已连接到 LM Studio</span>
+        <span v-else-if="aiConfig.tested && !aiConfig.testSuccess">连接失败，请检查配置</span>
+        <span v-else>未测试连接</span>
+      </div>
+      <div class="form-group">
+        <label>API 端点地址</label>
+        <input type="text" v-model="aiConfig.endpoint" placeholder="http://localhost:1234/v1/chat/completions" />
+        <div class="form-hint">LM Studio 默认地址为 http://localhost:1234/v1/chat/completions</div>
+      </div>
+      <div class="form-group">
+        <label>模型名称（可选）</label>
+        <input type="text" v-model="aiConfig.model" placeholder="留空将使用服务器默认模型" />
+      </div>
+      <div class="modal-footer">
+        <button @click="testAiConnection">测试连接</button>
+        <button @click="showAiConfig = false">取消</button>
+        <button class="btn-primary" @click="saveAiConfig">保存配置</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI WRITING ASSISTANT DRAWER -->
+  <div class="ai-drawer-overlay" v-if="showAiDrawer" @click.self="showAiDrawer = false">
+    <div class="ai-drawer">
+      <div class="ai-drawer-header">
+        <h2>✨ AI 写作助手</h2>
+        <button class="close-btn" @click="showAiDrawer = false">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="ai-drawer-body">
+        <!-- Function Selection -->
+        <div class="ai-section">
+          <div class="ai-section-title">选择功能</div>
+          <div class="ai-function-grid">
+            <button class="ai-function-btn" :class="{ active: aiFunction === 'optimize' }" @click="setAiFunction('optimize')">📝 文章优化</button>
+            <button class="ai-function-btn" :class="{ active: aiFunction === 'create' }" @click="setAiFunction('create')">💡 提示词创作</button>
+            <button class="ai-function-btn" :class="{ active: aiFunction === 'translate' }" @click="setAiFunction('translate')">🌐 文档翻译</button>
+            <button class="ai-function-btn" :class="{ active: aiFunction === 'expand' }" @click="setAiFunction('expand')">📖 扩写内容</button>
+            <button class="ai-function-btn" :class="{ active: aiFunction === 'compress' }" @click="setAiFunction('compress')">✂️ 精简内容</button>
+            <button class="ai-function-btn" :class="{ active: aiFunction === 'summary' }" @click="setAiFunction('summary')">📋 生成摘要</button>
+          </div>
+        </div>
+
+        <!-- Word Count Selection -->
+        <div class="ai-section" style="padding: 12px 16px;">
+          <div class="ai-wordcount-section">
+            <span class="ai-wordcount-label">字数限制</span>
+            <div class="ai-wordcount-grid">
+              <button class="ai-wordcount-btn" :class="{ active: aiWordCount === 100 }" @click="aiWordCount = 100">100字</button>
+              <button class="ai-wordcount-btn" :class="{ active: aiWordCount === 300 }" @click="aiWordCount = 300">300字</button>
+              <button class="ai-wordcount-btn" :class="{ active: aiWordCount === 500 }" @click="aiWordCount = 500">500字</button>
+              <button class="ai-wordcount-btn" :class="{ active: aiWordCount === 0 }" @click="aiWordCount = 0">不限制</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Prompt Input -->
+        <div class="ai-prompt-area">
+          <div class="ai-prompt-label" v-if="aiFunction === 'create'">输入创作提示词</div>
+          <div class="ai-prompt-label" v-else-if="aiFunction === 'translate'">选择目标语言</div>
+          <div class="ai-prompt-label" v-else>补充说明（可选）</div>
+          <textarea class="ai-prompt-input" v-model="aiPrompt" :placeholder="getAiPromptPlaceholder()"></textarea>
+        </div>
+
+        <!-- Result Area -->
+        <div class="ai-result-area" v-if="aiResult || aiGenerating">
+          <div class="ai-result-label">
+            <span>AI 生成结果</span>
+            <span v-if="aiGenerating" style="color: var(--accent);">生成中...</span>
+          </div>
+          <div class="ai-result-content" :class="{ loading: aiGenerating && !aiResult }">
+            <template v-if="aiGenerating && !aiResult">
+              <span>正在等待 AI 响应...</span>
+            </template>
+            <template v-else>{{ aiResult }}</template>
+          </div>
+        </div>
+      </div>
+      <div class="ai-drawer-footer">
+        <button @click="openAiConfig">⚙️ 配置</button>
+        <button @click="showAiDrawer = false">取消</button>
+        <button class="btn-primary" @click="generateAiContent" :disabled="aiGenerating || !aiReady">
+          {{ aiGenerating ? '生成中...' : '✨ 生成' }}
+        </button>
+        <button class="btn-primary" @click="insertAiResult" :disabled="!aiResult || aiGenerating">插入内容</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- INSERT MODE MODAL -->
+  <div class="modal-overlay" style="z-index: 110;" v-if="showInsertModeModal" @click.self="showInsertModeModal = false">
+    <div class="modal">
+      <h2>选择插入方式</h2>
+      <div class="insert-mode-options">
+        <div class="insert-mode-option" @click="insertMode('replace')">
+          <div class="option-icon">🔄</div>
+          <div class="option-text">
+            <div class="option-title">替换选中内容</div>
+            <div class="option-desc">将 AI 生成的内容替换编辑器中当前选中的文本</div>
+          </div>
+        </div>
+        <div class="insert-mode-option" @click="insertMode('cursor')">
+          <div class="option-icon">📍</div>
+          <div class="option-text">
+            <div class="option-title">插入到光标位置</div>
+            <div class="option-desc">将 AI 生成的内容插入到编辑器当前光标位置</div>
+          </div>
+        </div>
+        <div class="insert-mode-option" @click="insertMode('replaceAll')">
+          <div class="option-icon">📄</div>
+          <div class="option-text">
+            <div class="option-title">替换整个文档</div>
+            <div class="option-desc">用 AI 生成的内容完全替换当前文档的所有内容</div>
+          </div>
+        </div>
+        <div class="insert-mode-option" @click="insertMode('append')">
+          <div class="option-icon">⬇️</div>
+          <div class="option-text">
+            <div class="option-title">追加到文档末尾</div>
+            <div class="option-desc">将 AI 生成的内容追加到当前文档的最后</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button @click="showInsertModeModal = false">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" :class="toast.type" v-if="toast.show">{{ toast.message }}</div>
+</div>
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script>
+const { createApp, ref, reactive, computed, onMounted, nextTick } = Vue;
+
+const STORAGE_KEY = 'inkspace_github_config';
+
+const app = createApp({
+  setup() {
+    // ---- GitHub Config ----
+    const showConfig = ref(false);
+    const configForm = reactive({ token: '', owner: '', repo: '', path: '' });
+    const githubReady = ref(false);
+    let githubConfig = { token: '', owner: '', repo: '', path: '' };
+
+    function loadConfig() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const c = JSON.parse(saved);
+          githubConfig = c;
+          configForm.token = c.token || '';
+          configForm.owner = c.owner || '';
+          configForm.repo = c.repo || '';
+          configForm.path = c.path || '';
+          githubReady.value = !!(c.token && c.owner && c.repo);
+        }
+      } catch(e) {}
+    }
+    loadConfig();
+
+    function saveConfig() {
+      const c = {
+        token: configForm.token.trim(), owner: configForm.owner.trim(),
+        repo: configForm.repo.trim(), path: configForm.path.trim().replace(/\/+$/, '')
+      };
+      if (!c.token || !c.owner || !c.repo) { showToast('请填写 Token、Owner 和仓库名称', 'error'); return; }
+      githubConfig = c;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(c));
+      githubReady.value = true;
+      showConfig.value = false;
+      showToast('GitHub 配置已保存', 'success');
+      syncFromGitHub();
+    }
+
+    function clearConfig() {
+      localStorage.removeItem(STORAGE_KEY);
+      githubConfig = { token: '', owner: '', repo: '', path: '' };
+      configForm.token = ''; configForm.owner = ''; configForm.repo = ''; configForm.path = '';
+      githubReady.value = false; showConfig.value = false;
+      notes.value = []; currentNote.value = null; noteContents.value = {};
+      showToast('配置已清除', 'info');
+    }
+
+    // ---- UTF-8 Base64 ----
+    function utf8ToBase64(str) {
+      const bytes = new TextEncoder().encode(str);
+      let binary = '';
+      bytes.forEach(b => binary += String.fromCharCode(b));
+      return btoa(binary);
+    }
+    function base64ToUtf8(b64) {
+      const clean = b64.replace(/\s/g, '');
+      const binary = atob(clean);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      return new TextDecoder().decode(bytes);
+    }
+
+    // ---- GitHub API ----
+    function apiBase() {
+      return `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/contents`;
+    }
+    function indexPath() {
+      const p = githubConfig.path ? githubConfig.path + '/' : '';
+      return p + 'index.json';
+    }
+    function notePath(noteId) {
+      const p = githubConfig.path ? githubConfig.path + '/' : '';
+      return p + 'note_' + noteId + '.md';
+    }
+
+    async function githubFetch(url, options = {}) {
+      const headers = {
+        'Authorization': `token ${githubConfig.token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        ...options.headers
+      };
+      const res = await fetch(url, { ...options, headers });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.message || `HTTP ${res.status}`);
+      }
+      return res.json();
+    }
+
+    async function githubDelete(url) {
+      const headers = {
+        'Authorization': `token ${githubConfig.token}`,
+        'Accept': 'application/vnd.github.v3+json'
+      };
+      const res = await fetch(url, { method: 'DELETE', headers });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.message || `HTTP ${res.status}`);
+      }
+      return res.json();
+    }
+
+    // ---- SHA cache for index.json ----
+    let indexSha = null;
+
+    // ---- Notes State ----
+    const notes = ref([]);           // metadata list from index.json
+    const noteContents = ref({});    // { noteId: markdownContent }
+    const currentNote = ref(null);
+    const editingTitle = ref('');
+    const editingContent = ref('');
+    const previewMode = ref(false);
+    const searchQuery = ref('');
+    const syncing = ref(false);
+    let saveTimer = null;
+
+    const filteredNotes = computed(() => {
+      if (!searchQuery.value) return notes.value;
+      const q = searchQuery.value.toLowerCase();
+      return notes.value.filter(n => (n.title || '').toLowerCase().includes(q));
+    });
+
+    const renderedMarkdown = computed(() => {
+      if (!editingContent.value) return '<p style="color:#b8b0a4">暂无内容</p>';
+      try { return marked.parse(editingContent.value); }
+      catch(e) { return '<p style="color:#c5554a">Markdown 解析错误</p>'; }
+    });
+
+    // ---- Sync index from GitHub ----
+    async function syncFromGitHub() {
+      if (!githubReady.value) return;
+      syncing.value = true;
+      try {
+        const data = await githubFetch(apiBase() + '/' + indexPath());
+        indexSha = data.sha;
+        const parsed = JSON.parse(base64ToUtf8(data.content));
+        notes.value = (parsed.notes || []).map(n => ({
+          id: n.id || generateId(),
+          title: n.title || '',
+          createdAt: n.createdAt || new Date().toISOString(),
+          updatedAt: n.updatedAt || new Date().toISOString()
+        }));
+        // Restore current selection if still exists
+        if (currentNote.value) {
+          const found = notes.value.find(n => n.id === currentNote.value.id);
+          if (found) {
+            currentNote.value = found;
+            loadNoteContent(found.id);
+          } else {
+            currentNote.value = null;
+          }
+        }
+        showToast('同步完成', 'success');
+      } catch(e) {
+        if (e.message.includes('404')) {
+          notes.value = []; indexSha = null; noteContents.value = {};
+          showToast('仓库中尚无笔记，将在首次保存时创建', 'info');
+        } else if (e.message.includes('401')) {
+          showToast('认证失败，请检查 Token', 'error');
+        } else {
+          showToast('同步失败: ' + e.message, 'error');
+        }
+      } finally { syncing.value = false; }
+    }
+
+    // ---- Load single note content from GitHub ----
+    async function loadNoteContent(noteId) {
+      if (noteContents.value[noteId] !== undefined) return; // already loaded
+      try {
+        const data = await githubFetch(apiBase() + '/' + notePath(noteId));
+        noteContents.value[noteId] = base64ToUtf8(data.content);
+      } catch(e) {
+        noteContents.value[noteId] = '';
+      }
+    }
+
+    // ---- Save single note content file ----
+    async function saveNoteFile(noteId, content) {
+      let sha = null;
+      try {
+        const existing = await githubFetch(apiBase() + '/' + notePath(noteId));
+        sha = existing.sha;
+      } catch(e) { /* file may not exist */ }
+      const body = {
+        message: 'Update note ' + noteId,
+        content: utf8ToBase64(content)
+      };
+      if (sha) body.sha = sha;
+      await githubFetch(apiBase() + '/' + notePath(noteId), { method: 'PUT', body: JSON.stringify(body) });
+    }
+
+    // ---- Save index.json ----
+    async function saveIndex(msg) {
+      const body = {
+        message: msg || 'Update index',
+        content: utf8ToBase64(JSON.stringify({ notes: notes.value }, null, 2))
+      };
+      if (indexSha) body.sha = indexSha;
+      const result = await githubFetch(apiBase() + '/' + indexPath(), { method: 'PUT', body: JSON.stringify(body) });
+      indexSha = result.content.sha;
+    }
+
+    function scheduleSave() {
+      if (saveTimer) clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => doSave(), 1500);
+    }
+
+    async function doSave() {
+      if (!githubReady.value || !currentNote.value) return;
+      try {
+        // Save content file first
+        await saveNoteFile(currentNote.value.id, editingContent.value);
+        // Update index timestamp
+        const idx = notes.value.findIndex(n => n.id === currentNote.value.id);
+        if (idx >= 0) {
+          notes.value[idx].title = editingTitle.value;
+          notes.value[idx].updatedAt = new Date().toISOString();
+        }
+        await saveIndex('Update note via InkSpace');
+        showToast('已保存到 GitHub', 'success');
+      } catch(e) {
+        showToast('保存失败: ' + e.message, 'error');
+      }
+    }
+
+    // ---- Note CRUD ----
+    function generateId() {
+      return 'note_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+    }
+
+    async function createNote() {
+      const note = {
+        id: generateId(), title: '', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      };
+      notes.value.unshift(note);
+      noteContents.value[note.id] = '';
+      editingTitle.value = '';
+      editingContent.value = '';
+      previewMode.value = false;
+      currentNote.value = note;
+      try {
+        await saveNoteFile(note.id, '');
+        await saveIndex('Create note via InkSpace');
+        showToast('笔记已创建', 'success');
+      } catch(e) { showToast('创建失败: ' + e.message, 'error'); }
+    }
+
+    async function selectNote(note) {
+      currentNote.value = note;
+      editingTitle.value = note.title;
+      // Load content if not cached
+      if (noteContents.value[note.id] === undefined) {
+        editingContent.value = '';
+        await loadNoteContent(note.id);
+        // Only update if still on same note
+        if (currentNote.value && currentNote.value.id === note.id) {
+          editingContent.value = noteContents.value[note.id] || '';
+        }
+      } else {
+        editingContent.value = noteContents.value[note.id] || '';
+      }
+      previewMode.value = false;
+    }
+
+    function onTitleChange() {
+      if (!currentNote.value) return;
+      currentNote.value.title = editingTitle.value;
+      currentNote.value.updatedAt = new Date().toISOString();
+      scheduleSave();
+    }
+
+    function onContentChange() {
+      if (!currentNote.value) return;
+      noteContents.value[currentNote.value.id] = editingContent.value;
+      currentNote.value.updatedAt = new Date().toISOString();
+      scheduleSave();
+    }
+
+    async function deleteNote(note) {
+      const idx = notes.value.findIndex(n => n.id === note.id);
+      if (idx === -1) return;
+      notes.value.splice(idx, 1);
+      delete noteContents.value[note.id];
+      if (currentNote.value && currentNote.value.id === note.id) {
+        currentNote.value = notes.value.length > 0 ? notes.value[Math.max(0, idx - 1)] : null;
+        if (currentNote.value) {
+          editingTitle.value = currentNote.value.title;
+          editingContent.value = noteContents.value[currentNote.value.id] !== undefined
+            ? (noteContents.value[currentNote.value.id] || '')
+            : '';
+          loadNoteContent(currentNote.value.id);
+        } else {
+          editingTitle.value = ''; editingContent.value = '';
+        }
+      }
+      try {
+        // Try to delete note file
+        try {
+          const existing = await githubFetch(apiBase() + '/' + notePath(note.id));
+          await githubDelete(apiBase() + '/' + notePath(note.id));
+        } catch(e) { /* file may not exist */ }
+        await saveIndex('Delete note via InkSpace');
+        showToast('笔记已删除', 'info');
+      } catch(e) { showToast('删除失败: ' + e.message, 'error'); }
+    }
+
+    function formatDate(iso) {
+      if (!iso) return '';
+      const d = new Date(iso);
+      const now = new Date();
+      const diff = now - d;
+      if (diff < 60000) return '刚刚';
+      if (diff < 3600000) return Math.floor(diff / 60000) + ' 分钟前';
+      if (diff < 86400000) return Math.floor(diff / 3600000) + ' 小时前';
+      if (diff < 604800000) return Math.floor(diff / 86400000) + ' 天前';
+      return d.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric', year: d.getFullYear() !== now.getFullYear() ? 'numeric' : undefined });
+    }
+
+    // ---- Toast ----
+    const toast = reactive({ show: false, message: '', type: 'info' });
+    let toastTimer = null;
+    function showToast(message, type = 'info') {
+      toast.show = true; toast.message = message; toast.type = type;
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { toast.show = false; }, 2500);
+    }
+
+    // ============================================================
+    // ---- AI Writing Assistant ----
+    // ============================================================
+    const AI_STORAGE_KEY = 'inkspace_ai_config';
+
+    // AI Config
+    const showAiConfig = ref(false);
+    const aiConfig = reactive({
+      endpoint: 'http://localhost:1234/v1/chat/completions',
+      model: '',
+      tested: false,
+      testSuccess: false
+    });
+
+    // AI Drawer State
+    const showAiDrawer = ref(false);
+    const aiFunction = ref('optimize');
+    const aiPrompt = ref('');
+    const aiResult = ref('');
+    const aiGenerating = ref(false);
+    const aiWordCount = ref(0); // 0 = unlimited, 100/300/500 = word limits
+    const aiReady = computed(() => !!aiConfig.endpoint);
+
+    // Insert Mode Modal
+    const showInsertModeModal = ref(false);
+
+    function loadAiConfig() {
+      try {
+        const saved = localStorage.getItem(AI_STORAGE_KEY);
+        if (saved) {
+          const c = JSON.parse(saved);
+          aiConfig.endpoint = c.endpoint || 'http://localhost:1234/v1/chat/completions';
+          aiConfig.model = c.model || '';
+        }
+      } catch(e) {}
+    }
+    loadAiConfig();
+
+    function saveAiConfig() {
+      const c = {
+        endpoint: aiConfig.endpoint.trim() || 'http://localhost:1234/v1/chat/completions',
+        model: aiConfig.model.trim()
+      };
+      localStorage.setItem(AI_STORAGE_KEY, JSON.stringify(c));
+      aiConfig.tested = false;
+      aiConfig.testSuccess = false;
+      showAiConfig.value = false;
+      showToast('AI 配置已保存', 'success');
+    }
+
+    function openAiConfig() {
+      showAiConfig.value = true;
+    }
+
+    async function testAiConnection() {
+      const endpoint = aiConfig.endpoint.trim() || 'http://localhost:1234/v1/chat/completions';
+      try {
+        // Try to list models (LM Studio supports this)
+        const modelsUrl = endpoint.replace('/chat/completions', '/models');
+        const res = await fetch(modelsUrl, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          signal: AbortSignal.timeout(5000)
+        });
+        aiConfig.tested = true;
+        aiConfig.testSuccess = res.ok;
+        if (res.ok) {
+          showToast('AI 连接成功', 'success');
+        } else {
+          showToast('AI 连接失败: HTTP ' + res.status, 'error');
+        }
+      } catch(e) {
+        aiConfig.tested = true;
+        aiConfig.testSuccess = false;
+        showToast('AI 连接失败: ' + e.message, 'error');
+      }
+    }
+
+    function openAiDrawer() {
+      if (!aiConfig.endpoint) {
+        showAiConfig.value = true;
+        showToast('请先配置 AI 端点地址', 'info');
+        return;
+      }
+      aiResult.value = '';
+      aiPrompt.value = '';
+      showAiDrawer.value = true;
+    }
+
+    function setAiFunction(fn) {
+      aiFunction.value = fn;
+      aiResult.value = '';
+      // Auto-fill prompt for some functions
+      if (fn === 'optimize') {
+        aiPrompt.value = '';
+      } else if (fn === 'create') {
+        aiPrompt.value = '';
+      } else if (fn === 'translate') {
+        aiPrompt.value = '英文';
+      } else if (fn === 'expand') {
+        aiPrompt.value = '';
+      } else if (fn === 'compress') {
+        aiPrompt.value = '';
+      } else if (fn === 'summary') {
+        aiPrompt.value = '';
+      }
+    }
+
+    function getAiPromptPlaceholder() {
+      switch (aiFunction.value) {
+        case 'optimize': return '可选：指定优化方向，如"更正式"、"更口语化"、"改善语法"...';
+        case 'create': return '请输入创作提示词，例如"写一篇关于人工智能的科普文章"...';
+        case 'translate': return '请输入目标语言，如"英文"、"日文"、"法文"...';
+        case 'expand': return '可选：指定扩写方向，如"增加更多细节"、"增加案例说明"...';
+        case 'compress': return '可选：指定精简目标，如"保留核心观点"、"缩减到500字以内"...';
+        case 'summary': return '可选：指定摘要风格，如"一段话概括"、"要点列表"、"学术摘要"...';
+        default: return '请输入补充说明...';
+      }
+    }
+
+    function buildSystemPrompt(fn) {
+      const wc = aiWordCount.value;
+      const wcHint = wc > 0 ? `\n\n【重要】请将输出内容控制在${wc}字以内（中文字符数）。` : '';
+
+      switch (fn) {
+        case 'optimize':
+          return '你是一位专业的文章编辑和写作优化助手。请根据用户的要求优化文章内容。保持文章的核心意思不变，只在语法、结构、风格、表达等方面进行优化。直接输出优化后的完整文章，不要添加任何解释或标注。' + wcHint;
+        case 'create':
+          return '你是一位富有创意的写作助手。请根据用户的提示词创作内容。内容应该是完整的、有结构的、高质量的。直接输出创作的内容，不要添加任何解释或标注。' + wcHint;
+        case 'translate':
+          return '你是一位专业的翻译助手。请将用户提供的文章翻译成用户指定的目标语言。保持原文的格式、结构和含义。直接输出翻译结果，不要添加任何解释或标注。' + wcHint;
+        case 'expand':
+          return '你是一位擅长丰富内容的写作助手。请根据用户的要求扩写文章内容。在保持核心意思的基础上，增加更多细节、例子、论述或描写，使文章更加丰满和完整。直接输出扩写后的完整文章，不要添加任何解释或标注。' + wcHint;
+        case 'compress':
+          return '你是一位擅长精简内容的写作助手。请根据用户的要求精简文章内容。保留核心观点和关键信息，删除冗余和次要的内容，使文章更加简洁有力。直接输出精简后的完整文章，不要添加任何解释或标注。' + wcHint;
+        case 'summary':
+          return '你是一位擅长总结概括的写作助手。请根据用户的要求为文章生成摘要。摘要应该准确反映文章的核心内容和主要观点。直接输出摘要内容，不要添加任何解释或标注。' + wcHint;
+        default:
+          return '你是一位专业的写作助手。请帮助用户处理文本内容。直接输出结果，不要添加任何解释或标注。' + wcHint;
+      }
+    }
+
+    function buildUserPrompt(fn, content, extraPrompt) {
+      let userMsg = '';
+      switch (fn) {
+        case 'optimize':
+          userMsg = '请优化以下文章：\n\n' + content;
+          if (extraPrompt) userMsg += '\n\n优化方向：' + extraPrompt;
+          break;
+        case 'create':
+          userMsg = extraPrompt || '请创作一篇文章';
+          break;
+        case 'translate':
+          userMsg = '请将以下文章翻译成' + (extraPrompt || '英文') + '：\n\n' + content;
+          break;
+        case 'expand':
+          userMsg = '请扩写以下文章：\n\n' + content;
+          if (extraPrompt) userMsg += '\n\n扩写方向：' + extraPrompt;
+          break;
+        case 'compress':
+          userMsg = '请精简以下文章：\n\n' + content;
+          if (extraPrompt) userMsg += '\n\n精简要求：' + extraPrompt;
+          break;
+        case 'summary':
+          userMsg = '请为以下文章生成摘要：\n\n' + content;
+          if (extraPrompt) userMsg += '\n\n摘要要求：' + extraPrompt;
+          break;
+        default:
+          userMsg = content;
+      }
+      return userMsg;
+    }
+
+    async function generateAiContent() {
+      if (!aiConfig.endpoint) {
+        showToast('请先配置 AI 端点地址', 'error');
+        return;
+      }
+      if (aiGenerating.value) return;
+
+      // For create function, require prompt
+      if (aiFunction.value === 'create' && !aiPrompt.value.trim()) {
+        showToast('请输入创作提示词', 'error');
+        return;
+      }
+
+      // For other functions that use existing content, check if there's content
+      const needsContent = ['optimize', 'translate', 'expand', 'compress', 'summary'];
+      if (needsContent.includes(aiFunction.value) && !editingContent.value.trim()) {
+        showToast('当前笔记内容为空，请先输入内容', 'error');
+        return;
+      }
+
+      aiGenerating.value = true;
+      aiResult.value = '';
+
+      const systemPrompt = buildSystemPrompt(aiFunction.value);
+      const userPrompt = buildUserPrompt(aiFunction.value, editingContent.value, aiPrompt.value);
+
+      const body = {
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        temperature: 0.7,
+        stream: false
+      };
+      if (aiConfig.model) {
+        body.model = aiConfig.model;
+      }
+
+      try {
+        const res = await fetch(aiConfig.endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+
+        if (!res.ok) {
+          const errBody = await res.json().catch(() => ({}));
+          throw new Error(errBody.error?.message || `HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+        const content = data.choices?.[0]?.message?.content || '';
+        if (content) {
+          aiResult.value = content.trim();
+        } else {
+          showToast('AI 未返回内容', 'error');
+        }
+      } catch(e) {
+        showToast('AI 请求失败: ' + e.message, 'error');
+      } finally {
+        aiGenerating.value = false;
+      }
+    }
+
+    function insertAiResult() {
+      if (!aiResult.value) return;
+      showInsertModeModal.value = true;
+    }
+
+    function insertMode(mode) {
+      showInsertModeModal.value = false;
+      const content = aiResult.value;
+
+      switch (mode) {
+        case 'replace': {
+          // Get the textarea and its selection
+          const textarea = document.querySelector('.editor-pane');
+          if (textarea) {
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = editingContent.value;
+            editingContent.value = text.substring(0, start) + content + text.substring(end);
+          } else {
+            editingContent.value = content;
+          }
+          break;
+        }
+        case 'cursor': {
+          const textarea = document.querySelector('.editor-pane');
+          if (textarea) {
+            const pos = textarea.selectionStart;
+            const text = editingContent.value;
+            editingContent.value = text.substring(0, pos) + content + text.substring(pos);
+          } else {
+            editingContent.value += content;
+          }
+          break;
+        }
+        case 'replaceAll':
+          editingContent.value = content;
+          break;
+        case 'append':
+          editingContent.value += '\n\n' + content;
+          break;
+      }
+
+      // Trigger save
+      if (currentNote.value) {
+        noteContents.value[currentNote.value.id] = editingContent.value;
+        currentNote.value.updatedAt = new Date().toISOString();
+        scheduleSave();
+      }
+
+      showAiDrawer.value = false;
+      showToast('内容已插入', 'success');
+    }
+
+    // ============================================================
+    // ---- Init ----
+    // ============================================================
+
+    return {
+      showConfig, configForm, githubReady,
+      notes, currentNote, editingTitle, editingContent,
+      previewMode, searchQuery, syncing,
+      filteredNotes, renderedMarkdown,
+      saveConfig, clearConfig, syncFromGitHub,
+      createNote, selectNote, onTitleChange, onContentChange,
+      deleteNote, formatDate, toast,
+      // AI Writing Assistant
+      showAiConfig, aiConfig, showAiDrawer,
+      aiFunction, aiPrompt, aiResult, aiGenerating, aiWordCount, aiReady,
+      showInsertModeModal,
+      openAiConfig, saveAiConfig, testAiConnection,
+      openAiDrawer, setAiFunction, getAiPromptPlaceholder,
+      generateAiContent, insertAiResult, insertMode
+    };
+  }
+});
+app.mount('#app');
+</script>
+</body>
+</html>

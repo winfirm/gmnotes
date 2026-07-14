@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GM Notes - GitHub Markdown Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #faf7f2;
+  --surface: #ffffff;
+  --text: #3b3427;
+  --text-dim: #91897b;
+  --text-muted: #b8b0a4;
+  --border: #e8e2d8;
+  --accent: #c2843a;
+  --accent-hover: #a66d2e;
+  --accent-light: #f5ebe0;
+  --shadow-md: 0 4px 16px rgba(59,52,39,0.08);
+  --shadow-lg: 0 8px 32px rgba(59,52,39,0.12);
+  --radius: 12px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: #f2ede5;
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.container {
+  max-width: 640px;
+  width: 100%;
+  padding: 40px 24px;
+  text-align: center;
+}
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.logo-dot {
+  width: 10px; height: 10px;
+  background: var(--accent);
+  border-radius: 50%;
+  display: inline-block;
+}
+h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.5px;
+}
+.subtitle {
+  font-size: 15px;
+  color: var(--text-dim);
+  margin-bottom: 36px;
+  line-height: 1.6;
+}
+.features {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 40px;
+  text-align: left;
+}
+.feature {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow-md);
+}
+.feature-icon {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+.feature-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.feature-desc {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+.language-links {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+.lang-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 36px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 500;
+  box-shadow: var(--shadow-md);
+  transition: all 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.lang-btn:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+.lang-btn .lang-flag {
+  font-size: 22px;
+}
+.lang-btn .lang-text {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-weight: 400;
+}
+.lang-btn .lang-label {
+  display: flex;
+  flex-direction: column;
+}
+.footer {
+  margin-top: 48px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.footer a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.footer a:hover { text-decoration: underline; }
+@media (max-width: 480px) {
+  .features { grid-template-columns: 1fr; }
+  .language-links { flex-direction: column; align-items: center; }
+  .lang-btn { width: 100%; justify-content: center; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="logo">
+    <span class="logo-dot"></span>
+    <h1>GM Notes</h1>
+  </div>
+  <p class="subtitle">
+    A minimalist Markdown note-taking app powered by GitHub.<br>
+    Write, sync, and manage your notes with ease.
+  </p>
+
+  <div class="features">
+    <div class="feature">
+      <div class="feature-icon">📝</div>
+      <div class="feature-title">Markdown Editor</div>
+      <div class="feature-desc">Write with Markdown syntax and preview rendered results in real time.</div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🔄</div>
+      <div class="feature-title">GitHub Sync</div>
+      <div class="feature-desc">All notes are stored as .md files in your GitHub repository.</div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">✨</div>
+      <div class="feature-title">AI Writing Assistant</div>
+      <div class="feature-desc">Optimize, expand, compress, translate, and summarize with local AI.</div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🔍</div>
+      <div class="feature-title">Quick Search</div>
+      <div class="feature-desc">Instantly find any note by title with the built-in search.</div>
+    </div>
+  </div>
+
+  <div class="language-links">
+    <a href="./gmnotes-zh.html" class="lang-btn">
+      <span class="lang-flag">🇨🇳</span>
+      <span class="lang-label">
+        <span>中文版</span>
+        <span class="lang-text">Chinese</span>
+      </span>
+    </a>
+    <a href="./gmnotes.html" class="lang-btn">
+      <span class="lang-flag">🇬🇧</span>
+      <span class="lang-label">
+        <span>English</span>
+        <span class="lang-text">English</span>
+      </span>
+    </a>
+  </div>
+
+  <div class="footer">
+    Built with <a href="https://github.com" target="_blank">GitHub</a> API &middot; Data stored in your repo
+  </div>
+</div>
+</body>
+</html>
