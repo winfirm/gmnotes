@@ -702,22 +702,25 @@ body {
   padding: 16px 24px;
   border-top: 1px solid var(--border-light);
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 10px;
   flex-shrink: 0;
 }
 .ai-drawer-footer button {
   height: 38px;
-  padding: 0 20px;
+  padding: 0 14px;
   border-radius: var(--radius-sm);
   font-family: 'Noto Sans SC', sans-serif;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition);
   border: 1.5px solid var(--border);
   background: transparent;
   color: var(--text-dim);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .ai-drawer-footer button:hover { border-color: var(--text-dim); color: var(--text); }
 .ai-drawer-footer button.btn-primary {
@@ -1028,7 +1031,7 @@ New Note
         <button class="btn-primary" @click="generateAiContent" :disabled="aiGenerating || !aiReady">
           {{ aiGenerating ? 'Generating...' : '✨ Generate' }}
         </button>
-        <button class="btn-primary" @click="insertAiResult" :disabled="!aiResult || aiGenerating">Insert Content</button>
+        <button class="btn-primary" @click="insertAiResult" :disabled="!aiResult || aiGenerating">Insert</button>
       </div>
     </div>
   </div>
