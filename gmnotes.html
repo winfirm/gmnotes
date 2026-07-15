@@ -6,7 +6,7 @@
 <title>GM Notes - GitHub Markdown Notes</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:wght@400;600;700&family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
@@ -32,12 +32,24 @@
   --transition: 180ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 * { margin:0; padding:0; box-sizing:border-box; }
+/* Touch-friendly styles */
+button, a, input, textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+button:active, a:active {
+  opacity: 0.7;
+  transform: scale(0.98);
+}
 body {
-  font-family: 'Inter', 'Noto Sans SC', -apple-system, sans-serif;
+  font-family: 'Noto Sans SC', -apple-system, sans-serif;
   background: #f2ede5;
   color: var(--text);
   min-height: 100vh;
   overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 #app {
   display: flex;
@@ -63,7 +75,7 @@ body {
   flex-shrink: 0;
 }
 .sidebar-header h1 {
-  font-family: 'Playfair Display', 'Noto Serif SC', serif;
+  font-family: 'Noto Serif SC', serif;
   font-size: 22px;
   font-weight: 700;
   color: var(--text);
@@ -368,6 +380,7 @@ body {
   justify-content: center;
   color: var(--text-muted);
   gap: 8px;
+  position: relative;
 }
 .welcome .welcome-icon { font-size: 56px; opacity: 0.3; }
 .welcome .welcome-title { font-family: 'Noto Serif SC', serif; font-size: 18px; font-weight: 600; }
@@ -378,7 +391,7 @@ body {
   position: fixed; inset: 0;
   background: rgba(59,52,39,0.35);
   backdrop-filter: blur(3px);
-  z-index: 100;
+  z-index: 200;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -468,7 +481,7 @@ body {
   border-radius: 24px;
   font-size: 13px;
   font-weight: 500;
-  z-index: 200;
+  z-index: 300;
   animation: toastIn 0.25s ease;
   pointer-events: none;
   box-shadow: var(--shadow-md);
@@ -478,13 +491,300 @@ body {
 .toast.info { background: #e3f2fd; color: #1565c0; }
 @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(8px); } }
 
+/* ===== SIDEBAR OVERLAY (for mobile) ===== */
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(59,52,39,0.5);
+  z-index: 99;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.sidebar-overlay.active {
+  display: block;
+  opacity: 1;
+}
+
+/* ===== MENU BUTTON (hidden on desktop) ===== */
+.menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text-dim);
+  flex-shrink: 0;
+  transition: all var(--transition);
+}
+.menu-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-light);
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
-  .sidebar { width: 260px; min-width: 260px; }
-  .sidebar-header h1 { font-size: 18px; }
-  .editor-pane, .preview-pane { padding: 16px; font-size: 13px; }
-  .main-header { padding: 10px 16px; }
-  .title-input { font-size: 16px; }
+  /* Show menu button on mobile */
+  .menu-btn {
+    display: flex;
+  }
+
+  /* Sidebar - hidden by default, slides in from left */
+  .sidebar {
+    position: fixed;
+    left: -85vw;
+    width: 85vw;
+    max-width: 300px;
+    height: 100vh;
+    z-index: 100;
+    transition: left 0.3s ease;
+    box-shadow: none;
+  }
+  .sidebar.open {
+    left: 0;
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* Main content */
+  .main {
+    width: 100vw;
+  }
+
+  /* Header adjustments */
+  .main-header {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  /* Title input - take remaining space */
+  .title-input {
+    font-size: 16px;
+    min-width: 0;
+  }
+
+  /* Mode tabs - smaller on mobile */
+  .mode-tabs {
+    flex-shrink: 0;
+  }
+  .mode-tab {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+
+  /* AI button - smaller on mobile */
+  .btn-ai {
+    height: 32px;
+    padding: 0 10px;
+    font-size: 11px;
+  }
+
+  /* Editor and preview - full width */
+  .editor-pane, .preview-pane {
+    padding: 16px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* Welcome screen adjustments */
+  .welcome {
+    padding: 20px;
+  }
+  .welcome .welcome-icon {
+    font-size: 48px;
+  }
+  .welcome .welcome-title {
+    font-size: 16px;
+  }
+  .welcome .welcome-sub {
+    font-size: 12px;
+  }
+  .welcome-menu-btn {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+  }
+
+  /* Note list - better touch targets */
+  .note-item {
+    padding: 12px;
+    margin-bottom: 2px;
+  }
+  .note-item .note-title {
+    font-size: 13px;
+  }
+  .note-item .note-meta {
+    font-size: 10px;
+  }
+
+  /* Delete button - always visible on mobile for easier access */
+  .note-item .note-delete {
+    opacity: 0.7;
+    width: 32px;
+    height: 32px;
+  }
+
+  /* Sidebar actions - better touch targets */
+  .sidebar-actions {
+    padding: 8px 12px;
+  }
+  .btn-new {
+    height: 40px;
+    font-size: 12px;
+  }
+  .btn-sync, .btn-config {
+    width: 40px;
+    height: 40px;
+  }
+
+  /* Search box */
+  .search-box {
+    padding: 8px 12px;
+  }
+  .search-input {
+    height: 36px;
+    font-size: 14px;
+  }
+
+  /* Modal - full width on mobile */
+  .modal {
+    width: 95vw;
+    max-width: 95vw;
+    padding: 20px;
+    margin: 10px;
+  }
+  .modal h2 {
+    font-size: 16px;
+    margin-bottom: 16px;
+  }
+  .modal input {
+    height: 44px;
+    font-size: 14px;
+  }
+  .modal-footer button {
+    height: 40px;
+    padding: 0 16px;
+    font-size: 12px;
+  }
+
+  /* Toast - adjust position */
+  .toast {
+    bottom: 20px;
+    left: 16px;
+    right: 16px;
+    transform: none;
+    text-align: center;
+  }
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateY(8px); }
+  }
+
+  /* AI Drawer - bottom sheet on mobile */
+  .ai-drawer-overlay {
+    justify-content: center;
+    align-items: flex-end;
+  }
+  .ai-drawer {
+    width: 100%;
+    max-width: 100%;
+    height: 85vh;
+    max-height: 85vh;
+    border-radius: var(--radius) var(--radius) 0 0;
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+  }
+
+  /* AI Drawer header */
+  .ai-drawer-header {
+    padding: 12px 16px;
+  }
+  .ai-drawer-header h2 {
+    font-size: 15px;
+  }
+
+  /* AI Drawer body */
+  .ai-drawer-body {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  /* AI Function grid - single column on mobile */
+  .ai-function-grid {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .ai-function-btn {
+    height: 44px;
+    font-size: 13px;
+  }
+
+  /* AI Word count - horizontal scroll */
+  .ai-wordcount-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .ai-wordcount-grid {
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .ai-wordcount-btn {
+    height: 36px;
+    padding: 0 16px;
+    font-size: 12px;
+  }
+
+  /* AI Prompt area */
+  .ai-prompt-input {
+    min-height: 80px;
+    font-size: 14px;
+  }
+
+  /* AI Result area */
+  .ai-result-content {
+    min-height: 120px;
+    font-size: 14px;
+  }
+
+  /* AI Drawer footer */
+  .ai-drawer-footer {
+    padding: 12px 16px;
+    gap: 8px;
+  }
+  .ai-drawer-footer button {
+    height: 40px;
+    padding: 0 14px;
+    font-size: 12px;
+  }
+
+  /* Insert mode modal - full width */
+  .insert-mode-option {
+    padding: 14px;
+  }
+  .insert-mode-option .option-title {
+    font-size: 14px;
+  }
+  .insert-mode-option .option-desc {
+    font-size: 12px;
+  }
+}
+
+/* ===== TABLET (769px - 1024px) ===== */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sidebar {
+    width: 280px;
+    min-width: 280px;
+  }
+  .editor-pane, .preview-pane {
+    padding: 20px;
+  }
 }
 
 /* ===== AI WRITING ASSISTANT ===== */
@@ -492,7 +792,7 @@ body {
   position: fixed; inset: 0;
   background: rgba(59,52,39,0.35);
   backdrop-filter: blur(3px);
-  z-index: 100;
+  z-index: 200;
   display: flex;
   justify-content: flex-end;
 }
@@ -563,7 +863,7 @@ body {
 }
 .ai-function-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
 }
 .ai-function-btn {
@@ -579,7 +879,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  padding: 0 6px;
   transition: all var(--transition);
 }
 .ai-function-btn:hover {
@@ -702,25 +1002,22 @@ body {
   padding: 16px 24px;
   border-top: 1px solid var(--border-light);
   display: flex;
-  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 10px;
   flex-shrink: 0;
 }
 .ai-drawer-footer button {
   height: 38px;
-  padding: 0 14px;
+  padding: 0 12px;
   border-radius: var(--radius-sm);
   font-family: 'Noto Sans SC', sans-serif;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition);
   border: 1.5px solid var(--border);
   background: transparent;
   color: var(--text-dim);
-  white-space: nowrap;
-  flex-shrink: 0;
 }
 .ai-drawer-footer button:hover { border-color: var(--text-dim); color: var(--text); }
 .ai-drawer-footer button.btn-primary {
@@ -815,21 +1112,19 @@ body {
   border-radius: var(--radius-sm);
   cursor: pointer;
   font-family: 'Noto Sans SC', sans-serif;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
   transition: all var(--transition);
   flex-shrink: 0;
 }
 .btn-ai:hover {
   border-color: var(--accent);
-  color: var(--accent);
   background: var(--accent-light);
 }
-.btn-ai .ai-icon { font-size: 14px; }
 
 /* Streaming cursor */
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
@@ -843,19 +1138,19 @@ body {
 <body>
 <div id="app">
   <!-- SIDEBAR -->
-  <aside class="sidebar">
+  <aside class="sidebar" :class="{ open: sidebarOpen }">
     <div class="sidebar-header">
       <h1><span class="dot"></span><a href="https://winfirm.top/gmnotes/" target="_blank" style="color: inherit; text-decoration: none;">GM Notes</a></h1>
     </div>
     <div class="sidebar-actions">
       <button class="btn-new" @click="createNote" :disabled="!githubReady">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-New Note
+        New Note
       </button>
-      <button class="btn-sync" :class="{ spinning: syncing }" @click="syncFromGitHub" :disabled="!githubReady" title="Sync from GitHub">
+      <button class="btn-sync" :class="{ spinning: syncing }" @click="syncFromGitHub(); closeSidebar()" :disabled="!githubReady" title="Sync from GitHub">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
       </button>
-      <button class="btn-config" :class="{ configured: githubReady }" @click="showConfig = true" title="GitHub Config">
+      <button class="btn-config" :class="{ configured: githubReady }" @click="showConfig = true; closeSidebar()" title="GitHub Config">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       </button>
     </div>
@@ -886,14 +1181,18 @@ New Note
     </div>
   </aside>
 
+  <!-- SIDEBAR OVERLAY (for mobile) -->
+  <div class="sidebar-overlay" :class="{ active: sidebarOpen }" @click="closeSidebar"></div>
+
   <!-- MAIN -->
   <main class="main">
     <template v-if="currentNote">
       <div class="main-header">
-        <input class="title-input" type="text" v-model="editingTitle" @input="onTitleChange" placeholder="Note title" />
-        <button v-if="!previewMode" class="btn-ai" @click="openAiDrawer" title="AI Writing Assistant">
-          <span class="ai-icon">✨</span> AI Assistant
+        <button class="menu-btn" @click="toggleSidebar" title="Menu">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
+        <input class="title-input" type="text" v-model="editingTitle" @input="onTitleChange" placeholder="Note title" />
+        <button v-if="!previewMode" class="btn-ai" @click="openAiDrawer" title="AI Writing Assistant">AI+</button>
         <div class="mode-tabs">
           <button class="mode-tab" :class="{ active: !previewMode }" @click="previewMode = false">Edit</button>
           <button class="mode-tab" :class="{ active: previewMode }" @click="previewMode = true">Preview</button>
@@ -905,6 +1204,9 @@ New Note
       </div>
     </template>
     <div v-else class="welcome">
+      <button class="menu-btn welcome-menu-btn" @click="toggleSidebar" title="Menu">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
       <div class="welcome-icon">✍️</div>
       <div class="welcome-title">GM Notes</div>
       <div class="welcome-sub">Select a note to start editing, or create a new one</div>
@@ -941,7 +1243,7 @@ New Note
   </div>
 
   <!-- AI CONFIG MODAL -->
-  <div class="modal-overlay" style="z-index: 110;" v-if="showAiConfig" @click.self="showAiConfig = false">
+  <div class="modal-overlay" style="z-index: 210;" v-if="showAiConfig" @click.self="showAiConfig = false">
     <div class="modal">
       <h2>AI Writing Assistant Config</h2>
       <div class="ai-config-status" :class="aiConfig.tested ? (aiConfig.testSuccess ? 'connected' : 'disconnected') : 'disconnected'">
@@ -981,12 +1283,12 @@ New Note
         <div class="ai-section">
           <div class="ai-section-title">Select Function</div>
           <div class="ai-function-grid">
-            <button class="ai-function-btn" :class="{ active: aiFunction === 'optimize' }" @click="setAiFunction('optimize')">📝 Optimize</button>
-            <button class="ai-function-btn" :class="{ active: aiFunction === 'create' }" @click="setAiFunction('create')">💡 Create</button>
-            <button class="ai-function-btn" :class="{ active: aiFunction === 'translate' }" @click="setAiFunction('translate')">🌐 Translate</button>
-            <button class="ai-function-btn" :class="{ active: aiFunction === 'expand' }" @click="setAiFunction('expand')">📖 Expand</button>
-            <button class="ai-function-btn" :class="{ active: aiFunction === 'compress' }" @click="setAiFunction('compress')">✂️ Compress</button>
-            <button class="ai-function-btn" :class="{ active: aiFunction === 'summary' }" @click="setAiFunction('summary')">📋 Summarize</button>
+            <button class="ai-function-btn" :class="{ active: aiFunction === 'optimize' }" @click="setAiFunction('optimize')">Optimize</button>
+            <button class="ai-function-btn" :class="{ active: aiFunction === 'create' }" @click="setAiFunction('create')">Create</button>
+            <button class="ai-function-btn" :class="{ active: aiFunction === 'translate' }" @click="setAiFunction('translate')">Translate</button>
+            <button class="ai-function-btn" :class="{ active: aiFunction === 'expand' }" @click="setAiFunction('expand')">Expand</button>
+            <button class="ai-function-btn" :class="{ active: aiFunction === 'compress' }" @click="setAiFunction('compress')">Compress</button>
+            <button class="ai-function-btn" :class="{ active: aiFunction === 'summary' }" @click="setAiFunction('summary')">Summarize</button>
           </div>
         </div>
 
@@ -1026,10 +1328,10 @@ New Note
         </div>
       </div>
       <div class="ai-drawer-footer">
-        <button @click="openAiConfig">⚙️ Config</button>
+        <button @click="openAiConfig">Config</button>
         <button @click="showAiDrawer = false">Cancel</button>
         <button class="btn-primary" @click="generateAiContent" :disabled="aiGenerating || !aiReady">
-          {{ aiGenerating ? 'Generating...' : '✨ Generate' }}
+          {{ aiGenerating ? 'Generating...' : 'Generate' }}
         </button>
         <button class="btn-primary" @click="insertAiResult" :disabled="!aiResult || aiGenerating">Insert</button>
       </div>
@@ -1037,7 +1339,7 @@ New Note
   </div>
 
   <!-- INSERT MODE MODAL -->
-  <div class="modal-overlay" style="z-index: 110;" v-if="showInsertModeModal" @click.self="showInsertModeModal = false">
+  <div class="modal-overlay" style="z-index: 210;" v-if="showInsertModeModal" @click.self="showInsertModeModal = false">
     <div class="modal">
       <h2>Select Insert Mode</h2>
       <div class="insert-mode-options">
@@ -1088,6 +1390,15 @@ const STORAGE_KEY = 'gmnotes_github_config';
 
 const app = createApp({
   setup() {
+    // ---- Sidebar Control (for mobile) ----
+    const sidebarOpen = ref(false);
+    function toggleSidebar() {
+      sidebarOpen.value = !sidebarOpen.value;
+    }
+    function closeSidebar() {
+      sidebarOpen.value = false;
+    }
+
     // ---- GitHub Config ----
     const showConfig = ref(false);
     const configForm = reactive({ token: '', owner: '', repo: '', path: '' });
@@ -1348,6 +1659,10 @@ const app = createApp({
         editingContent.value = noteContents.value[note.id] || '';
       }
       previewMode.value = false;
+      // Close sidebar on mobile after selecting a note
+      if (window.innerWidth <= 768) {
+        closeSidebar();
+      }
     }
 
     function onTitleChange() {
@@ -1708,6 +2023,8 @@ const app = createApp({
     // ============================================================
 
     return {
+      // Sidebar Control
+      sidebarOpen, toggleSidebar, closeSidebar,
       showConfig, configForm, githubReady,
       notes, currentNote, editingTitle, editingContent,
       previewMode, searchQuery, syncing,
