@@ -903,7 +903,7 @@ body {
     </template>
     <div v-else class="welcome">
       <div class="welcome-icon">✍️</div>
-      <div class="welcome-title">InkSpace 记事本</div>
+      <div class="welcome-title">GMNotes 记事本</div>
       <div class="welcome-sub">选择笔记开始编辑，或创建一篇新笔记</div>
     </div>
   </main>
@@ -1081,7 +1081,7 @@ body {
 <script>
 const { createApp, ref, reactive, computed, onMounted, nextTick } = Vue;
 
-const STORAGE_KEY = 'inkspace_github_config';
+const STORAGE_KEY = 'gmnotes_github_config';
 
 const app = createApp({
   setup() {
@@ -1301,7 +1301,7 @@ const app = createApp({
           notes.value[idx].title = editingTitle.value;
           notes.value[idx].updatedAt = new Date().toISOString();
         }
-        await saveIndex('Update note via InkSpace');
+        await saveIndex('Update note via GMNotes');
         showToast('已保存到 GitHub', 'success');
       } catch(e) {
         showToast('保存失败: ' + e.message, 'error');
@@ -1325,7 +1325,7 @@ const app = createApp({
       currentNote.value = note;
       try {
         await saveNoteFile(note.id, '');
-        await saveIndex('Create note via InkSpace');
+        await saveIndex('Create note via GMNotes');
         showToast('笔记已创建', 'success');
       } catch(e) { showToast('创建失败: ' + e.message, 'error'); }
     }
@@ -1384,7 +1384,7 @@ const app = createApp({
           const existing = await githubFetch(apiBase() + '/' + notePath(note.id));
           await githubDelete(apiBase() + '/' + notePath(note.id));
         } catch(e) { /* file may not exist */ }
-        await saveIndex('Delete note via InkSpace');
+        await saveIndex('Delete note via GMNotes');
         showToast('笔记已删除', 'info');
       } catch(e) { showToast('删除失败: ' + e.message, 'error'); }
     }
@@ -1413,7 +1413,7 @@ const app = createApp({
     // ============================================================
     // ---- AI Writing Assistant ----
     // ============================================================
-    const AI_STORAGE_KEY = 'inkspace_ai_config';
+    const AI_STORAGE_KEY = 'gmnotes_ai_config';
 
     // AI Config
     const showAiConfig = ref(false);

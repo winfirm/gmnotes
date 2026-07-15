@@ -1084,7 +1084,7 @@ New Note
 <script>
 const { createApp, ref, reactive, computed, onMounted, nextTick } = Vue;
 
-const STORAGE_KEY = 'inkspace_github_config';
+const STORAGE_KEY = 'gmnotes_github_config';
 
 const app = createApp({
   setup() {
@@ -1304,7 +1304,7 @@ const app = createApp({
           notes.value[idx].title = editingTitle.value;
           notes.value[idx].updatedAt = new Date().toISOString();
         }
-        await saveIndex('Update note via InkSpace');
+        await saveIndex('Update note via GMNotes');
         showToast('Saved to GitHub', 'success');
       } catch(e) {
         showToast('Save failed: ' + e.message, 'error');
@@ -1328,7 +1328,7 @@ const app = createApp({
       currentNote.value = note;
       try {
         await saveNoteFile(note.id, '');
-        await saveIndex('Create note via InkSpace');
+        await saveIndex('Create note via GMNotes');
         showToast('Note created', 'success');
       } catch(e) { showToast('Create failed: ' + e.message, 'error'); }
     }
@@ -1387,7 +1387,7 @@ const app = createApp({
           const existing = await githubFetch(apiBase() + '/' + notePath(note.id));
           await githubDelete(apiBase() + '/' + notePath(note.id));
         } catch(e) { /* file may not exist */ }
-        await saveIndex('Delete note via InkSpace');
+        await saveIndex('Delete note via GMNotes');
         showToast('Note deleted', 'info');
       } catch(e) { showToast('Delete failed: ' + e.message, 'error'); }
     }
@@ -1416,7 +1416,7 @@ const app = createApp({
     // ============================================================
     // ---- AI Writing Assistant ----
     // ============================================================
-    const AI_STORAGE_KEY = 'inkspace_ai_config';
+    const AI_STORAGE_KEY = 'gmnotes_ai_config';
 
     // AI Config
     const showAiConfig = ref(false);
