@@ -90,6 +90,33 @@ body {
   border-radius: 50%;
   display: inline-block;
 }
+.btn-lang-float {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  z-index: 100;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition);
+}
+.btn-lang-float:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-light);
+  box-shadow: var(--shadow-lg);
+}
 .sidebar-actions {
   padding: 12px 20px;
   display: flex;
@@ -1140,41 +1167,41 @@ body {
   <!-- SIDEBAR -->
   <aside class="sidebar" :class="{ open: sidebarOpen }">
     <div class="sidebar-header">
-      <h1><span class="dot"></span><a href="https://winfirm.top/gmnotes/" target="_blank" style="color: inherit; text-decoration: none;">GM Notes</a></h1>
+      <h1 style="flex:1"><span class="dot"></span><a href="https://winfirm.top/gmnotes/" target="_blank" style="color: inherit; text-decoration: none;">GM Notes</a></h1>
     </div>
     <div class="sidebar-actions">
       <button class="btn-new" @click="createNote" :disabled="!githubReady">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        New Note
+        {{ tl('sidebar.new_note') }}
       </button>
-      <button class="btn-sync" :class="{ spinning: syncing }" @click="syncFromGitHub(); closeSidebar()" :disabled="!githubReady" title="Sync from GitHub">
+      <button class="btn-sync" :class="{ spinning: syncing }" @click="syncFromGitHub(); closeSidebar()" :disabled="!githubReady" :title="tl('sidebar.title.tooltip')">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
       </button>
-      <button class="btn-config" :class="{ configured: githubReady }" @click="showConfig = true; closeSidebar()" title="GitHub Config">
+      <button class="btn-config" :class="{ configured: githubReady }" @click="showConfig = true; closeSidebar()" :title="tl('sidebar.config.tooltip')">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       </button>
     </div>
     <div class="search-box">
-      <input class="search-input" type="text" v-model="searchQuery" placeholder="Search notes..." />
+      <input class="search-input" type="text" v-model="searchQuery" :placeholder="tl('sidebar.search')" />
     </div>
     <div class="note-list">
       <div v-if="filteredNotes.length === 0" class="empty-state">
         <div class="empty-icon">📝</div>
-        <div class="empty-text" v-if="!githubReady">Please configure GitHub connection first</div>
-        <div class="empty-text" v-else-if="notes.length === 0">No notes yet<br>Click "New Note" to get started</div>
-        <div class="empty-text" v-else>No matching notes found</div>
+        <div class="empty-text" v-if="!githubReady" v-html="tl('sidebar.empty.no_config')"></div>
+        <div class="empty-text" v-else-if="notes.length === 0" v-html="tl('sidebar.empty.no_notes')"></div>
+        <div class="empty-text" v-else>{{ tl('sidebar.empty.no_match') }}</div>
       </div>
       <div v-for="note in filteredNotes" :key="note.id"
            class="note-item"
            :class="{ active: currentNote && currentNote.id === note.id }"
            @click="selectNote(note)">
         <div class="note-info">
-          <div class="note-title">{{ note.title || 'Untitled' }}</div>
+          <div class="note-title">{{ note.title || tl('sidebar.untitled') }}</div>
           <div class="note-meta">
             <span>{{ formatDate(note.updatedAt) }}</span>
           </div>
         </div>
-        <button class="note-delete" @click.stop="deleteNote(note)" title="Delete">
+        <button class="note-delete" @click.stop="deleteNote(note)" :title="tl('sidebar.delete.tooltip')">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
         </button>
       </div>
@@ -1188,56 +1215,56 @@ body {
   <main class="main">
     <template v-if="currentNote">
       <div class="main-header">
-        <button class="menu-btn" @click="toggleSidebar" title="Menu">
+        <button class="menu-btn" @click="toggleSidebar" :title="tl('editor.menu.tooltip')">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
-        <input class="title-input" type="text" v-model="editingTitle" @input="onTitleChange" placeholder="Note title" />
-        <button v-if="!previewMode" class="btn-ai" @click="openAiDrawer" title="AI Writing Assistant">AI+</button>
+        <input class="title-input" type="text" v-model="editingTitle" @input="onTitleChange" :placeholder="tl('editor.title_placeholder')" />
+        <button v-if="!previewMode" class="btn-ai" @click="openAiDrawer" :title="tl('editor.ai.tooltip')">AI+</button>
         <div class="mode-tabs">
-          <button class="mode-tab" :class="{ active: !previewMode }" @click="previewMode = false">Edit</button>
-          <button class="mode-tab" :class="{ active: previewMode }" @click="previewMode = true">Preview</button>
+          <button class="mode-tab" :class="{ active: !previewMode }" @click="previewMode = false">{{ tl('editor.mode.edit') }}</button>
+          <button class="mode-tab" :class="{ active: previewMode }" @click="previewMode = true">{{ tl('editor.mode.preview') }}</button>
         </div>
       </div>
       <div class="editor-area">
-        <textarea v-show="!previewMode" class="editor-pane" v-model="editingContent" @input="onContentChange" placeholder="Enter Markdown content here..."></textarea>
+        <textarea v-show="!previewMode" class="editor-pane" v-model="editingContent" @input="onContentChange" :placeholder="tl('editor.content_placeholder')"></textarea>
         <div v-show="previewMode" class="preview-pane" v-html="renderedMarkdown"></div>
       </div>
     </template>
     <div v-else class="welcome">
-      <button class="menu-btn welcome-menu-btn" @click="toggleSidebar" title="Menu">
+      <button class="menu-btn welcome-menu-btn" @click="toggleSidebar" :title="tl('editor.menu.tooltip')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
       <div class="welcome-icon">✍️</div>
-      <div class="welcome-title">GM Notes</div>
-      <div class="welcome-sub">Select a note to start editing, or create a new one</div>
+      <div class="welcome-title">{{ tl('app.title') }}</div>
+      <div class="welcome-sub">{{ tl('app.welcome') }}</div>
     </div>
   </main>
 
   <!-- GITHUB CONFIG MODAL -->
   <div class="modal-overlay" v-if="showConfig" @click.self="showConfig = false">
     <div class="modal">
-      <h2>GitHub Connection Config</h2>
+      <h2>{{ tl('config.github.title') }}</h2>
       <div class="form-group">
-        <label>Personal Access Token</label>
+        <label>{{ tl('config.github.token') }}</label>
         <input type="password" v-model="configForm.token" placeholder="ghp_xxxxxxxxxxxx" />
-        <div class="form-hint">Requires repo permission. Create at GitHub Settings → Developer settings → Tokens</div>
+        <div class="form-hint">{{ tl('config.github.token_hint') }}</div>
       </div>
       <div class="form-group">
-        <label>Repository Owner</label>
+        <label>{{ tl('config.github.owner') }}</label>
         <input type="text" v-model="configForm.owner" placeholder="e.g. octocat" />
       </div>
       <div class="form-group">
-        <label>Repository Name</label>
+        <label>{{ tl('config.github.repo') }}</label>
         <input type="text" v-model="configForm.repo" placeholder="e.g. my-notes" />
       </div>
       <div class="form-group">
-        <label>Storage Path (optional)</label>
-        <input type="text" v-model="configForm.path" placeholder="Defaults to repository root" />
-        <div class="form-hint">Notes will be saved as individual .md files under this path, e.g. data/</div>
+        <label>{{ tl('config.github.path') }}</label>
+        <input type="text" v-model="configForm.path" :placeholder="tl('config.github.path_placeholder')" />
+        <div class="form-hint">{{ tl('config.github.path_hint') }}</div>
       </div>
       <div class="modal-footer">
-        <button @click="clearConfig">Clear Config</button>
-        <button class="btn-primary" @click="saveConfig">Save & Connect</button>
+        <button @click="clearConfig">{{ tl('config.github.clear') }}</button>
+        <button class="btn-primary" @click="saveConfig">{{ tl('config.github.save') }}</button>
       </div>
     </div>
   </div>
@@ -1245,26 +1272,26 @@ body {
   <!-- AI CONFIG MODAL -->
   <div class="modal-overlay" style="z-index: 210;" v-if="showAiConfig" @click.self="showAiConfig = false">
     <div class="modal">
-      <h2>AI Writing Assistant Config</h2>
+      <h2>{{ tl('config.ai.title') }}</h2>
       <div class="ai-config-status" :class="aiConfig.tested ? (aiConfig.testSuccess ? 'connected' : 'disconnected') : 'disconnected'">
         <span class="status-dot"></span>
-        <span v-if="aiConfig.tested && aiConfig.testSuccess">Connected to LM Studio</span>
-        <span v-else-if="aiConfig.tested && !aiConfig.testSuccess">Connection failed, please check config</span>
-        <span v-else>Connection not tested</span>
+        <span v-if="aiConfig.tested && aiConfig.testSuccess">{{ tl('config.ai.connected') }}</span>
+        <span v-else-if="aiConfig.tested && !aiConfig.testSuccess">{{ tl('config.ai.failed') }}</span>
+        <span v-else>{{ tl('config.ai.not_tested') }}</span>
       </div>
       <div class="form-group">
-        <label>API Endpoint</label>
+        <label>{{ tl('config.ai.endpoint') }}</label>
         <input type="text" v-model="aiConfig.endpoint" placeholder="http://localhost:1234/v1/chat/completions" />
-        <div class="form-hint">LM Studio default: http://localhost:1234/v1/chat/completions</div>
+        <div class="form-hint">{{ tl('config.ai.endpoint_hint') }}</div>
       </div>
       <div class="form-group">
-        <label>Model Name (optional)</label>
-        <input type="text" v-model="aiConfig.model" placeholder="Leave empty to use server default model" />
+        <label>{{ tl('config.ai.model') }}</label>
+        <input type="text" v-model="aiConfig.model" :placeholder="tl('config.ai.model_placeholder')" />
       </div>
       <div class="modal-footer">
-        <button @click="testAiConnection">Test Connection</button>
-        <button @click="showAiConfig = false">Cancel</button>
-        <button class="btn-primary" @click="saveAiConfig">Save Config</button>
+        <button @click="testAiConnection">{{ tl('config.ai.test') }}</button>
+        <button @click="showAiConfig = false">{{ tl('config.ai.cancel') }}</button>
+        <button class="btn-primary" @click="saveAiConfig">{{ tl('config.ai.save') }}</button>
       </div>
     </div>
   </div>
@@ -1273,7 +1300,7 @@ body {
   <div class="ai-drawer-overlay" v-if="showAiDrawer" @click.self="showAiDrawer = false">
     <div class="ai-drawer">
       <div class="ai-drawer-header">
-        <h2>✨ AI Writing Assistant</h2>
+        <h2>{{ tl('ai.title') }}</h2>
         <button class="close-btn" @click="showAiDrawer = false">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
@@ -1281,59 +1308,59 @@ body {
       <div class="ai-drawer-body">
         <!-- Function Selection -->
         <div class="ai-section">
-          <div class="ai-section-title">Select Function</div>
+          <div class="ai-section-title">{{ tl('ai.section.function') }}</div>
           <div class="ai-function-grid">
-            <button class="ai-function-btn" :class="{ active: aiFunction === 'optimize' }" @click="setAiFunction('optimize')">Optimize</button>
-            <button class="ai-function-btn" :class="{ active: aiFunction === 'create' }" @click="setAiFunction('create')">Create</button>
-            <button class="ai-function-btn" :class="{ active: aiFunction === 'translate' }" @click="setAiFunction('translate')">Translate</button>
-            <button class="ai-function-btn" :class="{ active: aiFunction === 'expand' }" @click="setAiFunction('expand')">Expand</button>
-            <button class="ai-function-btn" :class="{ active: aiFunction === 'compress' }" @click="setAiFunction('compress')">Compress</button>
-            <button class="ai-function-btn" :class="{ active: aiFunction === 'summary' }" @click="setAiFunction('summary')">Summarize</button>
+            <button class="ai-function-btn" :class="{ active: aiFunction === 'optimize' }" @click="setAiFunction('optimize')">{{ tl('ai.function.optimize') }}</button>
+            <button class="ai-function-btn" :class="{ active: aiFunction === 'create' }" @click="setAiFunction('create')">{{ tl('ai.function.create') }}</button>
+            <button class="ai-function-btn" :class="{ active: aiFunction === 'translate' }" @click="setAiFunction('translate')">{{ tl('ai.function.translate') }}</button>
+            <button class="ai-function-btn" :class="{ active: aiFunction === 'expand' }" @click="setAiFunction('expand')">{{ tl('ai.function.expand') }}</button>
+            <button class="ai-function-btn" :class="{ active: aiFunction === 'compress' }" @click="setAiFunction('compress')">{{ tl('ai.function.compress') }}</button>
+            <button class="ai-function-btn" :class="{ active: aiFunction === 'summary' }" @click="setAiFunction('summary')">{{ tl('ai.function.summary') }}</button>
           </div>
         </div>
 
         <!-- Word Count Selection -->
         <div class="ai-section" style="padding: 12px 16px;">
           <div class="ai-wordcount-section">
-            <span class="ai-wordcount-label">Word Limit</span>
+            <span class="ai-wordcount-label">{{ tl('ai.word_limit') }}</span>
             <div class="ai-wordcount-grid">
               <button class="ai-wordcount-btn" :class="{ active: aiWordCount === 100 }" @click="aiWordCount = 100">100</button>
               <button class="ai-wordcount-btn" :class="{ active: aiWordCount === 300 }" @click="aiWordCount = 300">300</button>
               <button class="ai-wordcount-btn" :class="{ active: aiWordCount === 500 }" @click="aiWordCount = 500">500</button>
-              <button class="ai-wordcount-btn" :class="{ active: aiWordCount === 0 }" @click="aiWordCount = 0">No Limit</button>
+              <button class="ai-wordcount-btn" :class="{ active: aiWordCount === 0 }" @click="aiWordCount = 0">{{ tl('ai.no_limit') }}</button>
             </div>
           </div>
         </div>
 
         <!-- Prompt Input -->
         <div class="ai-prompt-area">
-          <div class="ai-prompt-label" v-if="aiFunction === 'create'">Enter creation prompt</div>
-          <div class="ai-prompt-label" v-else-if="aiFunction === 'translate'">Select target language</div>
-          <div class="ai-prompt-label" v-else>Additional notes (optional)</div>
+          <div class="ai-prompt-label" v-if="aiFunction === 'create'">{{ tl('ai.prompt.create') }}</div>
+          <div class="ai-prompt-label" v-else-if="aiFunction === 'translate'">{{ tl('ai.prompt.translate') }}</div>
+          <div class="ai-prompt-label" v-else>{{ tl('ai.prompt.default') }}</div>
           <textarea class="ai-prompt-input" v-model="aiPrompt" :placeholder="getAiPromptPlaceholder()"></textarea>
         </div>
 
         <!-- Result Area -->
         <div class="ai-result-area" v-if="aiResult || aiGenerating">
           <div class="ai-result-label">
-            <span>AI Generated Result</span>
-            <span v-if="aiGenerating" style="color: var(--accent);">Generating...</span>
+            <span>{{ tl('ai.result.title') }}</span>
+            <span v-if="aiGenerating" style="color: var(--accent);">{{ tl('ai.result.generating') }}</span>
           </div>
           <div class="ai-result-content" :class="{ loading: aiGenerating && !aiResult }">
             <template v-if="aiGenerating && !aiResult">
-              <span>Waiting for AI response...</span>
+              <span>{{ tl('ai.result.waiting') }}</span>
             </template>
             <template v-else>{{ aiResult }}</template>
           </div>
         </div>
       </div>
       <div class="ai-drawer-footer">
-        <button @click="openAiConfig">Config</button>
-        <button @click="showAiDrawer = false">Cancel</button>
+        <button @click="openAiConfig">{{ tl('ai.footer.config') }}</button>
+        <button @click="showAiDrawer = false">{{ tl('ai.footer.cancel') }}</button>
         <button class="btn-primary" @click="generateAiContent" :disabled="aiGenerating || !aiReady">
-          {{ aiGenerating ? 'Generating...' : 'Generate' }}
+          {{ aiGenerating ? tl('ai.footer.generating') : tl('ai.footer.generate') }}
         </button>
-        <button class="btn-primary" @click="insertAiResult" :disabled="!aiResult || aiGenerating">Insert</button>
+        <button class="btn-primary" @click="insertAiResult" :disabled="!aiResult || aiGenerating">{{ tl('ai.footer.insert') }}</button>
       </div>
     </div>
   </div>
@@ -1341,45 +1368,50 @@ body {
   <!-- INSERT MODE MODAL -->
   <div class="modal-overlay" style="z-index: 210;" v-if="showInsertModeModal" @click.self="showInsertModeModal = false">
     <div class="modal">
-      <h2>Select Insert Mode</h2>
+      <h2>{{ tl('insert.title') }}</h2>
       <div class="insert-mode-options">
         <div class="insert-mode-option" @click="insertMode('replace')">
           <div class="option-icon">🔄</div>
           <div class="option-text">
-            <div class="option-title">Replace Selection</div>
-            <div class="option-desc">Replace the currently selected text with AI-generated content</div>
+            <div class="option-title">{{ tl('insert.replace.title') }}</div>
+            <div class="option-desc">{{ tl('insert.replace.desc') }}</div>
           </div>
         </div>
         <div class="insert-mode-option" @click="insertMode('cursor')">
           <div class="option-icon">📍</div>
           <div class="option-text">
-            <div class="option-title">Insert at Cursor</div>
-            <div class="option-desc">Insert AI-generated content at the current cursor position</div>
+            <div class="option-title">{{ tl('insert.cursor.title') }}</div>
+            <div class="option-desc">{{ tl('insert.cursor.desc') }}</div>
           </div>
         </div>
         <div class="insert-mode-option" @click="insertMode('replaceAll')">
           <div class="option-icon">📄</div>
           <div class="option-text">
-            <div class="option-title">Replace Entire Document</div>
-            <div class="option-desc">Replace all content in the current document with AI-generated content</div>
+            <div class="option-title">{{ tl('insert.replaceAll.title') }}</div>
+            <div class="option-desc">{{ tl('insert.replaceAll.desc') }}</div>
           </div>
         </div>
         <div class="insert-mode-option" @click="insertMode('append')">
           <div class="option-icon">⬇️</div>
           <div class="option-text">
-            <div class="option-title">Append to End</div>
-            <div class="option-desc">Append AI-generated content to the end of the document</div>
+            <div class="option-title">{{ tl('insert.append.title') }}</div>
+            <div class="option-desc">{{ tl('insert.append.desc') }}</div>
           </div>
         </div>
       </div>
       <div class="modal-footer">
-        <button @click="showInsertModeModal = false">Cancel</button>
+        <button @click="showInsertModeModal = false">{{ tl('insert.cancel') }}</button>
       </div>
     </div>
   </div>
 
   <!-- TOAST -->
   <div class="toast" :class="toast.type" v-if="toast.show">{{ toast.message }}</div>
+
+  <!-- LANGUAGE TOGGLE (floating) -->
+  <button class="btn-lang-float" @click="toggleLocale" :title="locale === 'zh' ? 'Switch to English' : '切换到中文'">
+    {{ locale === 'zh' ? 'EN' : '中' }}
+  </button>
 </div>
 
 <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
@@ -1387,6 +1419,291 @@ body {
 const { createApp, ref, reactive, computed, onMounted, nextTick } = Vue;
 
 const STORAGE_KEY = 'gmnotes_github_config';
+const LANG_STORAGE_KEY = 'gmnotes_locale';
+
+// ============================================================
+// ---- i18n Messages ----
+// ============================================================
+const messages = {
+  zh: {
+    'app.title': 'GM Notes',
+    'app.welcome': '选择笔记开始编辑，或创建一篇新笔记',
+    'app.no_content': '暂无内容',
+    'app.markdown_error': 'Markdown 解析错误',
+    'sidebar.new_note': '新建笔记',
+    'sidebar.search': '搜索笔记...',
+    'sidebar.empty.no_config': '请先配置 GitHub 连接',
+    'sidebar.empty.no_notes': '还没有笔记<br>点击「新建笔记」开始',
+    'sidebar.empty.no_match': '未找到匹配的笔记',
+    'sidebar.untitled': '无标题',
+    'sidebar.title.tooltip': '从 GitHub 同步',
+    'sidebar.config.tooltip': 'GitHub 配置',
+    'sidebar.delete.tooltip': '删除',
+    'editor.title_placeholder': '笔记标题',
+    'editor.content_placeholder': '在此输入 Markdown 内容...',
+    'editor.menu.tooltip': '菜单',
+    'editor.ai.tooltip': 'AI 写作助手',
+    'editor.mode.edit': '编辑',
+    'editor.mode.preview': '预览',
+    'config.github.title': 'GitHub 连接配置',
+    'config.github.token': 'Personal Access Token',
+    'config.github.token_hint': '需要 repo 权限。在 GitHub Settings → Developer settings → Tokens 创建',
+    'config.github.owner': '仓库 Owner',
+    'config.github.repo': '仓库名称',
+    'config.github.path': '存储路径（可选）',
+    'config.github.path_placeholder': '默认为仓库根目录',
+    'config.github.path_hint': '笔记将以独立 .md 文件保存在此路径下，如 data/',
+    'config.github.clear': '清除配置',
+    'config.github.save': '保存并连接',
+    'config.ai.title': 'AI 写作助手配置',
+    'config.ai.connected': '已连接到 LM Studio',
+    'config.ai.failed': '连接失败，请检查配置',
+    'config.ai.not_tested': '未测试连接',
+    'config.ai.endpoint': 'API 端点地址',
+    'config.ai.endpoint_hint': 'LM Studio 默认地址为 http://localhost:1234/v1/chat/completions',
+    'config.ai.model': '模型名称（可选）',
+    'config.ai.model_placeholder': '留空将使用服务器默认模型',
+    'config.ai.test': '测试连接',
+    'config.ai.cancel': '取消',
+    'config.ai.save': '保存配置',
+    'ai.title': '✨ AI 写作助手',
+    'ai.section.function': '选择功能',
+    'ai.function.optimize': '文章优化',
+    'ai.function.create': '提示词创作',
+    'ai.function.translate': '文档翻译',
+    'ai.function.expand': '扩写内容',
+    'ai.function.compress': '精简内容',
+    'ai.function.summary': '生成摘要',
+    'ai.word_limit': '字数限制',
+    'ai.no_limit': '不限制',
+    'ai.prompt.create': '输入创作提示词',
+    'ai.prompt.translate': '选择目标语言',
+    'ai.prompt.default': '补充说明（可选）',
+    'ai.result.title': 'AI 生成结果',
+    'ai.result.generating': '生成中...',
+    'ai.result.waiting': '正在等待 AI 响应...',
+    'ai.footer.config': '配置',
+    'ai.footer.cancel': '取消',
+    'ai.footer.generate': '生成',
+    'ai.footer.generating': '生成中...',
+    'ai.footer.insert': '插入内容',
+    'ai.placeholder.optimize': '可选：指定优化方向，如"更正式"、"更口语化"、"改善语法"...',
+    'ai.placeholder.create': '请输入创作提示词，例如"写一篇关于人工智能的科普文章"...（也可仅通过标题创作）',
+    'ai.placeholder.translate': '请输入目标语言，如"英文"、"日文"、"法文"...',
+    'ai.placeholder.expand': '可选：指定扩写方向，如"增加更多细节"、"添加案例分析"...',
+    'ai.placeholder.compress': '可选：指定精简目标，如"保留核心观点"、"缩减到500字以内"...',
+    'ai.placeholder.summary': '可选：指定摘要风格，如"一段话概括"、"分点列出"、"学术摘要"...',
+    'ai.placeholder.default': '请输入补充说明...',
+    'ai.system.wc_hint': '\n\n【重要】请将输出内容控制在${wc}字以内（中文字符数）。',
+    'ai.system.optimize': '你是一位专业的文章编辑和写作优化助手。请根据用户的要求优化文章内容。保持文章的核心意思不变，只在语法、结构、风格、表达等方面进行优化。直接输出优化后的完整文章，不要添加任何解释或标注。',
+    'ai.system.create': '你是一位富有创意的写作助手。请根据用户的提示词创作内容。内容应该是完整的、有结构的、高质量的。直接输出创作的内容，不要添加任何解释或标注。',
+    'ai.system.translate': '你是一位专业的翻译助手。请将用户提供的文章翻译成用户指定的目标语言。保持原文的格式、结构和含义。直接输出翻译结果，不要添加任何解释或标注。',
+    'ai.system.expand': '你是一位擅长丰富内容的写作助手。请根据用户的要求扩写文章内容。在保持核心意思的基础上，增加更多细节、例子、论述或描写，使文章更加丰满和完整。直接输出扩写后的完整文章，不要添加任何解释或标注。',
+    'ai.system.compress': '你是一位擅长精简内容的写作助手。请根据用户的要求精简文章内容。保留核心观点和关键信息，删除冗余和次要的内容，使文章更加简洁有力。直接输出精简后的完整文章，不要添加任何解释或标注。',
+    'ai.system.summary': '你是一位擅长总结概括的写作助手。请根据用户的要求为文章生成摘要。摘要应该准确反映文章的核心内容和主要观点。直接输出摘要内容，不要添加任何解释或标注。',
+    'ai.system.default': '你是一位专业的写作助手。请帮助用户处理文本内容。直接输出结果，不要添加任何解释或标注。',
+    'ai.user.optimize': '请优化以下文章：\n\n',
+    'ai.user.optimize_direction': '\n\n优化方向：',
+    'ai.user.create_title': '标题：',
+    'ai.user.create_requirements': '\n\n创作要求：',
+    'ai.user.create_from_title': '请根据以下标题创作一篇文章：\n\n',
+    'ai.user.create_fallback': '请创作一篇文章',
+    'ai.user.translate': '请将以下文章翻译成',
+    'ai.user.translate_default': '英文',
+    'ai.user.translate_colon': '：\n\n',
+    'ai.user.expand': '请扩写以下文章：\n\n',
+    'ai.user.expand_direction': '\n\n扩写方向：',
+    'ai.user.compress': '请精简以下文章：\n\n',
+    'ai.user.compress_direction': '\n\n精简要求：',
+    'ai.user.summary': '请为以下文章生成摘要：\n\n',
+    'ai.user.summary_direction': '\n\n摘要要求：',
+    'insert.title': '选择插入方式',
+    'insert.replace.title': '替换选中内容',
+    'insert.replace.desc': '用 AI 生成的内容替换当前选中的文本',
+    'insert.cursor.title': '在光标处插入',
+    'insert.cursor.desc': '在当前光标位置插入 AI 生成的内容',
+    'insert.replaceAll.title': '替换整个文档',
+    'insert.replaceAll.desc': '用 AI 生成的内容替换当前文档的所有内容',
+    'insert.append.title': '追加到末尾',
+    'insert.append.desc': '将 AI 生成的内容追加到文档末尾',
+    'insert.cancel': '取消',
+    'toast.config_required': '请填写 Token、Owner 和仓库名称',
+    'toast.config_saved': 'GitHub 配置已保存',
+    'toast.config_cleared': '配置已清除',
+    'toast.sync_complete': '同步完成',
+    'toast.sync.no_notes': '仓库中尚无笔记，将在首次保存时创建',
+    'toast.sync.auth_failed': '认证失败，请检查 Token',
+    'toast.sync.failed': '同步失败: ',
+    'toast.save.success': '已保存到 GitHub',
+    'toast.save.failed': '保存失败: ',
+    'toast.note_created': '笔记已创建',
+    'toast.note_create_failed': '创建失败: ',
+    'toast.note_deleted': '笔记已删除',
+    'toast.note_delete_failed': '删除失败: ',
+    'toast.ai_config_saved': 'AI 配置已保存',
+    'toast.ai_connected': 'AI 连接成功',
+    'toast.ai_connect_failed_http': 'AI 连接失败: HTTP ',
+    'toast.ai_connect_failed': 'AI 连接失败: ',
+    'toast.ai_config_required': '请先配置 AI 端点地址',
+    'toast.ai_prompt_required': '请输入创作提示词或标题',
+    'toast.ai_content_required': '当前笔记内容为空，请先输入内容',
+    'toast.ai_no_result': 'AI 未返回内容',
+    'toast.ai_request_failed': 'AI 请求失败: ',
+    'toast.content_inserted': '内容已插入',
+    'format.just_now': '刚刚',
+    'format.minutes_ago': '分钟前',
+    'format.hours_ago': '小时前',
+    'format.days_ago': '天前',
+    'format.locale': 'zh-CN',
+  },
+  en: {
+    'app.title': 'GM Notes',
+    'app.welcome': 'Select a note to start editing, or create a new one',
+    'app.no_content': 'No content',
+    'app.markdown_error': 'Markdown parsing error',
+    'sidebar.new_note': 'New Note',
+    'sidebar.search': 'Search notes...',
+    'sidebar.empty.no_config': 'Please configure GitHub connection first',
+    'sidebar.empty.no_notes': 'No notes yet<br>Click "New Note" to get started',
+    'sidebar.empty.no_match': 'No matching notes found',
+    'sidebar.untitled': 'Untitled',
+    'sidebar.title.tooltip': 'Sync from GitHub',
+    'sidebar.config.tooltip': 'GitHub Config',
+    'sidebar.delete.tooltip': 'Delete',
+    'editor.title_placeholder': 'Note title',
+    'editor.content_placeholder': 'Enter Markdown content here...',
+    'editor.menu.tooltip': 'Menu',
+    'editor.ai.tooltip': 'AI Writing Assistant',
+    'editor.mode.edit': 'Edit',
+    'editor.mode.preview': 'Preview',
+    'config.github.title': 'GitHub Connection Config',
+    'config.github.token': 'Personal Access Token',
+    'config.github.token_hint': 'Requires repo permission. Create at GitHub Settings → Developer settings → Tokens',
+    'config.github.owner': 'Repository Owner',
+    'config.github.repo': 'Repository Name',
+    'config.github.path': 'Storage Path (optional)',
+    'config.github.path_placeholder': 'Defaults to repository root',
+    'config.github.path_hint': 'Notes will be saved as individual .md files under this path, e.g. data/',
+    'config.github.clear': 'Clear Config',
+    'config.github.save': 'Save & Connect',
+    'config.ai.title': 'AI Writing Assistant Config',
+    'config.ai.connected': 'Connected to LM Studio',
+    'config.ai.failed': 'Connection failed, please check config',
+    'config.ai.not_tested': 'Connection not tested',
+    'config.ai.endpoint': 'API Endpoint',
+    'config.ai.endpoint_hint': 'LM Studio default: http://localhost:1234/v1/chat/completions',
+    'config.ai.model': 'Model Name (optional)',
+    'config.ai.model_placeholder': 'Leave empty to use server default model',
+    'config.ai.test': 'Test Connection',
+    'config.ai.cancel': 'Cancel',
+    'config.ai.save': 'Save Config',
+    'ai.title': '✨ AI Writing Assistant',
+    'ai.section.function': 'Select Function',
+    'ai.function.optimize': 'Optimize',
+    'ai.function.create': 'Create',
+    'ai.function.translate': 'Translate',
+    'ai.function.expand': 'Expand',
+    'ai.function.compress': 'Compress',
+    'ai.function.summary': 'Summarize',
+    'ai.word_limit': 'Word Limit',
+    'ai.no_limit': 'No Limit',
+    'ai.prompt.create': 'Enter creation prompt',
+    'ai.prompt.translate': 'Select target language',
+    'ai.prompt.default': 'Additional notes (optional)',
+    'ai.result.title': 'AI Generated Result',
+    'ai.result.generating': 'Generating...',
+    'ai.result.waiting': 'Waiting for AI response...',
+    'ai.footer.config': 'Config',
+    'ai.footer.cancel': 'Cancel',
+    'ai.footer.generate': 'Generate',
+    'ai.footer.generating': 'Generating...',
+    'ai.footer.insert': 'Insert',
+    'ai.placeholder.optimize': 'Optional: specify optimization direction, e.g. "more formal", "more conversational", "improve grammar"...',
+    'ai.placeholder.create': 'Enter a creation prompt, e.g. "Write a popular science article about AI"... (or create from title only)',
+    'ai.placeholder.translate': 'Enter target language, e.g. "English", "Japanese", "French"...',
+    'ai.placeholder.expand': 'Optional: specify expansion direction, e.g. "add more details", "add case studies"...',
+    'ai.placeholder.compress': 'Optional: specify compression goal, e.g. "keep core points", "reduce to under 500 words"...',
+    'ai.placeholder.summary': 'Optional: specify summary style, e.g. "one paragraph", "bullet points", "academic abstract"...',
+    'ai.placeholder.default': 'Enter additional notes...',
+    'ai.system.wc_hint': '\n\n[Important] Please keep the output within ${wc} words.',
+    'ai.system.optimize': 'You are a professional article editor and writing optimization assistant. Please optimize the article according to the user\'s requirements. Keep the core meaning unchanged, and only optimize in terms of grammar, structure, style, and expression. Output the optimized article directly without adding any explanations or annotations.',
+    'ai.system.create': 'You are a creative writing assistant. Please create content based on the user\'s prompt. The content should be complete, well-structured, and high-quality. Output the created content directly without adding any explanations or annotations.',
+    'ai.system.translate': 'You are a professional translation assistant. Please translate the article provided by the user into the target language specified. Maintain the original format, structure, and meaning. Output the translation directly without adding any explanations or annotations.',
+    'ai.system.expand': 'You are a writing assistant skilled at enriching content. Please expand the article according to the user\'s requirements. While maintaining the core meaning, add more details, examples, arguments, or descriptions to make the article more comprehensive. Output the expanded article directly without adding any explanations or annotations.',
+    'ai.system.compress': 'You are a writing assistant skilled at compressing content. Please condense the article according to the user\'s requirements. Retain core viewpoints and key information, remove redundant and minor content, making the article more concise and impactful. Output the compressed article directly without adding any explanations or annotations.',
+    'ai.system.summary': 'You are a writing assistant skilled at summarizing. Please generate a summary for the article according to the user\'s requirements. The summary should accurately reflect the core content and main viewpoints. Output the summary directly without adding any explanations or annotations.',
+    'ai.system.default': 'You are a professional writing assistant. Please help the user process text content. Output the result directly without adding any explanations or annotations.',
+    'ai.user.optimize': 'Please optimize the following article:\n\n',
+    'ai.user.optimize_direction': '\n\nOptimization direction: ',
+    'ai.user.create_title': 'Title: ',
+    'ai.user.create_requirements': '\n\nCreative requirements: ',
+    'ai.user.create_from_title': 'Please create an article based on the following title:\n\n',
+    'ai.user.create_fallback': 'Please create an article',
+    'ai.user.translate': 'Please translate the following article into ',
+    'ai.user.translate_default': 'English',
+    'ai.user.translate_colon': ':\n\n',
+    'ai.user.expand': 'Please expand the following article:\n\n',
+    'ai.user.expand_direction': '\n\nExpansion direction: ',
+    'ai.user.compress': 'Please compress the following article:\n\n',
+    'ai.user.compress_direction': '\n\nCompression requirements: ',
+    'ai.user.summary': 'Please generate a summary for the following article:\n\n',
+    'ai.user.summary_direction': '\n\nSummary requirements: ',
+    'insert.title': 'Select Insert Mode',
+    'insert.replace.title': 'Replace Selection',
+    'insert.replace.desc': 'Replace the currently selected text with AI-generated content',
+    'insert.cursor.title': 'Insert at Cursor',
+    'insert.cursor.desc': 'Insert AI-generated content at the current cursor position',
+    'insert.replaceAll.title': 'Replace Entire Document',
+    'insert.replaceAll.desc': 'Replace all content in the current document with AI-generated content',
+    'insert.append.title': 'Append to End',
+    'insert.append.desc': 'Append AI-generated content to the end of the document',
+    'insert.cancel': 'Cancel',
+    'toast.config_required': 'Please fill in Token, Owner, and repository name',
+    'toast.config_saved': 'GitHub config saved',
+    'toast.config_cleared': 'Config cleared',
+    'toast.sync_complete': 'Sync complete',
+    'toast.sync.no_notes': 'No notes in repository yet, will be created on first save',
+    'toast.sync.auth_failed': 'Authentication failed, please check Token',
+    'toast.sync.failed': 'Sync failed: ',
+    'toast.save.success': 'Saved to GitHub',
+    'toast.save.failed': 'Save failed: ',
+    'toast.note_created': 'Note created',
+    'toast.note_create_failed': 'Create failed: ',
+    'toast.note_deleted': 'Note deleted',
+    'toast.note_delete_failed': 'Delete failed: ',
+    'toast.ai_config_saved': 'AI config saved',
+    'toast.ai_connected': 'AI connected',
+    'toast.ai_connect_failed_http': 'AI connection failed: HTTP ',
+    'toast.ai_connect_failed': 'AI connection failed: ',
+    'toast.ai_config_required': 'Please configure AI endpoint first',
+    'toast.ai_prompt_required': 'Please enter a creation prompt or title',
+    'toast.ai_content_required': 'Current note is empty, please enter content first',
+    'toast.ai_no_result': 'AI returned no content',
+    'toast.ai_request_failed': 'AI request failed: ',
+    'toast.content_inserted': 'Content inserted',
+    'format.just_now': 'just now',
+    'format.minutes_ago': ' minutes ago',
+    'format.hours_ago': ' hours ago',
+    'format.days_ago': ' days ago',
+    'format.locale': 'en-US',
+  }
+};
+
+// ============================================================
+// ---- i18n Helper ----
+// ============================================================
+function detectLocale() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlLang = urlParams.get('lang');
+  if (urlLang && (urlLang === 'zh' || urlLang === 'en')) return urlLang;
+  const saved = localStorage.getItem(LANG_STORAGE_KEY);
+  if (saved && (saved === 'zh' || saved === 'en')) return saved;
+  return navigator.language.startsWith('zh') ? 'zh' : 'en';
+}
+
+function t(key, locale) {
+  return (messages[locale] && messages[locale][key]) || messages.en[key] || key;
+}
 
 const app = createApp({
   setup() {
@@ -1397,6 +1714,21 @@ const app = createApp({
     }
     function closeSidebar() {
       sidebarOpen.value = false;
+    }
+
+    // ---- i18n ----
+    const locale = ref(detectLocale());
+    function setLocale(lang) {
+      locale.value = lang;
+      localStorage.setItem(LANG_STORAGE_KEY, lang);
+      document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+    }
+    function toggleLocale() {
+      setLocale(locale.value === 'zh' ? 'en' : 'zh');
+    }
+    // t() for Vue templates - returns reactive translation
+    function tl(key) {
+      return t(key, locale.value);
     }
 
     // ---- GitHub Config ----
@@ -1426,12 +1758,12 @@ const app = createApp({
         token: configForm.token.trim(), owner: configForm.owner.trim(),
         repo: configForm.repo.trim(), path: configForm.path.trim().replace(/\/+$/, '')
       };
-      if (!c.token || !c.owner || !c.repo) { showToast('Please fill in Token, Owner, and repository name', 'error'); return; }
+      if (!c.token || !c.owner || !c.repo) { showToast(t('toast.config_required', locale.value), 'error'); return; }
       githubConfig = c;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(c));
       githubReady.value = true;
       showConfig.value = false;
-      showToast('GitHub config saved', 'success');
+      showToast(t('toast.config_saved', locale.value), 'success');
       syncFromGitHub();
     }
 
@@ -1441,7 +1773,7 @@ const app = createApp({
       configForm.token = ''; configForm.owner = ''; configForm.repo = ''; configForm.path = '';
       githubReady.value = false; showConfig.value = false;
       notes.value = []; currentNote.value = null; noteContents.value = {};
-      showToast('Config cleared', 'info');
+      showToast(t('toast.config_cleared', locale.value), 'info');
     }
 
     // ---- UTF-8 Base64 ----
@@ -1520,9 +1852,9 @@ const app = createApp({
     });
 
     const renderedMarkdown = computed(() => {
-      if (!editingContent.value) return '<p style="color:#b8b0a4">No content</p>';
+      if (!editingContent.value) return '<p style="color:#b8b0a4">' + t('app.no_content', locale.value) + '</p>';
       try { return marked.parse(editingContent.value); }
-      catch(e) { return '<p style="color:#c5554a">Markdown parsing error</p>'; }
+      catch(e) { return '<p style="color:#c5554a">' + t('app.markdown_error', locale.value) + '</p>'; }
     });
 
     // ---- Sync index from GitHub ----
@@ -1549,15 +1881,15 @@ const app = createApp({
             currentNote.value = null;
           }
         }
-        showToast('Sync complete', 'success');
+        showToast(t('toast.sync_complete', locale.value), 'success');
       } catch(e) {
-        if (e.message.includes('404')) {
+        if (e.message.includes('404') || e.message.includes('Not found')) {
           notes.value = []; indexSha = null; noteContents.value = {};
-          showToast('No notes in repository yet, will be created on first save', 'info');
+          showToast(t('toast.sync.no_notes', locale.value), 'info');
         } else if (e.message.includes('401')) {
-          showToast('Authentication failed, please check Token', 'error');
+          showToast(t('toast.sync.auth_failed', locale.value), 'error');
         } else {
-          showToast('Sync failed: ' + e.message, 'error');
+          showToast(t('toast.sync.failed', locale.value) + e.message, 'error');
         }
       } finally { syncing.value = false; }
     }
@@ -1616,9 +1948,9 @@ const app = createApp({
           notes.value[idx].updatedAt = new Date().toISOString();
         }
         await saveIndex('Update note via GMNotes');
-        showToast('Saved to GitHub', 'success');
+        showToast(t('toast.save.success', locale.value), 'success');
       } catch(e) {
-        showToast('Save failed: ' + e.message, 'error');
+        showToast(t('toast.save.failed', locale.value) + e.message, 'error');
       }
     }
 
@@ -1640,8 +1972,8 @@ const app = createApp({
       try {
         await saveNoteFile(note.id, '');
         await saveIndex('Create note via GMNotes');
-        showToast('Note created', 'success');
-      } catch(e) { showToast('Create failed: ' + e.message, 'error'); }
+        showToast(t('toast.note_created', locale.value), 'success');
+      } catch(e) { showToast(t('toast.note_create_failed', locale.value) + e.message, 'error'); }
     }
 
     async function selectNote(note) {
@@ -1703,8 +2035,8 @@ const app = createApp({
           await githubDelete(apiBase() + '/' + notePath(note.id));
         } catch(e) { /* file may not exist */ }
         await saveIndex('Delete note via GMNotes');
-        showToast('Note deleted', 'info');
-      } catch(e) { showToast('Delete failed: ' + e.message, 'error'); }
+        showToast(t('toast.note_deleted', locale.value), 'info');
+      } catch(e) { showToast(t('toast.note_delete_failed', locale.value) + e.message, 'error'); }
     }
 
     function formatDate(iso) {
@@ -1712,11 +2044,11 @@ const app = createApp({
       const d = new Date(iso);
       const now = new Date();
       const diff = now - d;
-      if (diff < 60000) return 'just now';
-      if (diff < 3600000) return Math.floor(diff / 60000) + ' minutes ago';
-      if (diff < 86400000) return Math.floor(diff / 3600000) + ' hours ago';
-      if (diff < 604800000) return Math.floor(diff / 86400000) + ' days ago';
-      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: d.getFullYear() !== now.getFullYear() ? 'numeric' : undefined });
+      if (diff < 60000) return t('format.just_now', locale.value);
+      if (diff < 3600000) return Math.floor(diff / 60000) + t('format.minutes_ago', locale.value);
+      if (diff < 86400000) return Math.floor(diff / 3600000) + t('format.hours_ago', locale.value);
+      if (diff < 604800000) return Math.floor(diff / 86400000) + t('format.days_ago', locale.value);
+      return d.toLocaleDateString(t('format.locale', locale.value), { month: 'short', day: 'numeric', year: d.getFullYear() !== now.getFullYear() ? 'numeric' : undefined });
     }
 
     // ---- Toast ----
@@ -1775,7 +2107,7 @@ const app = createApp({
       aiConfig.tested = false;
       aiConfig.testSuccess = false;
       showAiConfig.value = false;
-      showToast('AI config saved', 'success');
+      showToast(t('toast.ai_config_saved', locale.value), 'success');
     }
 
     function openAiConfig() {
@@ -1795,21 +2127,21 @@ const app = createApp({
         aiConfig.tested = true;
         aiConfig.testSuccess = res.ok;
         if (res.ok) {
-          showToast('AI connected', 'success');
+          showToast(t('toast.ai_connected', locale.value), 'success');
         } else {
-          showToast('AI connection failed: HTTP ' + res.status, 'error');
+          showToast(t('toast.ai_connect_failed_http', locale.value) + res.status, 'error');
         }
       } catch(e) {
         aiConfig.tested = true;
         aiConfig.testSuccess = false;
-        showToast('AI connection failed: ' + e.message, 'error');
+        showToast(t('toast.ai_connect_failed', locale.value) + e.message, 'error');
       }
     }
 
     function openAiDrawer() {
       if (!aiConfig.endpoint) {
         showAiConfig.value = true;
-        showToast('Please configure AI endpoint first', 'info');
+        showToast(t('toast.ai_config_required', locale.value), 'info');
         return;
       }
       aiResult.value = '';
@@ -1826,7 +2158,7 @@ const app = createApp({
       } else if (fn === 'create') {
         aiPrompt.value = '';
       } else if (fn === 'translate') {
-        aiPrompt.value = 'English';
+        aiPrompt.value = t('ai.user.translate_default', locale.value);
       } else if (fn === 'expand') {
         aiPrompt.value = '';
       } else if (fn === 'compress') {
@@ -1837,63 +2169,74 @@ const app = createApp({
     }
 
     function getAiPromptPlaceholder() {
+      const lang = locale.value;
       switch (aiFunction.value) {
-        case 'optimize': return 'Optional: specify optimization direction, e.g. "more formal", "more conversational", "improve grammar"...';
-        case 'create': return 'Enter a creation prompt, e.g. "Write a popular science article about AI"...';
-        case 'translate': return 'Enter target language, e.g. "English", "Japanese", "French"...';
-        case 'expand': return 'Optional: specify expansion direction, e.g. "add more details", "add case studies"...';
-        case 'compress': return 'Optional: specify compression goal, e.g. "keep core points", "reduce to under 500 words"...';
-        case 'summary': return 'Optional: specify summary style, e.g. "one paragraph", "bullet points", "academic abstract"...';
-        default: return 'Enter additional notes...';
+        case 'optimize': return t('ai.placeholder.optimize', lang);
+        case 'create': return t('ai.placeholder.create', lang);
+        case 'translate': return t('ai.placeholder.translate', lang);
+        case 'expand': return t('ai.placeholder.expand', lang);
+        case 'compress': return t('ai.placeholder.compress', lang);
+        case 'summary': return t('ai.placeholder.summary', lang);
+        default: return t('ai.placeholder.default', lang);
       }
     }
 
     function buildSystemPrompt(fn) {
+      const lang = locale.value;
       const wc = aiWordCount.value;
-      const wcHint = wc > 0 ? `\n\n[Important] Please keep the output within ${wc} words.` : '';
+      const wcHint = wc > 0 ? t('ai.system.wc_hint', lang).replace('${wc}', wc) : '';
 
       switch (fn) {
         case 'optimize':
-          return 'You are a professional article editor and writing optimization assistant. Please optimize the article according to the user\'s requirements. Keep the core meaning unchanged, and only optimize in terms of grammar, structure, style, and expression. Output the optimized article directly without adding any explanations or annotations.' + wcHint;
+          return t('ai.system.optimize', lang) + wcHint;
         case 'create':
-          return 'You are a creative writing assistant. Please create content based on the user\'s prompt. The content should be complete, well-structured, and high-quality. Output the created content directly without adding any explanations or annotations.' + wcHint;
+          return t('ai.system.create', lang) + wcHint;
         case 'translate':
-          return 'You are a professional translation assistant. Please translate the article provided by the user into the target language specified. Maintain the original format, structure, and meaning. Output the translation directly without adding any explanations or annotations.' + wcHint;
+          return t('ai.system.translate', lang) + wcHint;
         case 'expand':
-          return 'You are a writing assistant skilled at enriching content. Please expand the article according to the user\'s requirements. While maintaining the core meaning, add more details, examples, arguments, or descriptions to make the article more comprehensive. Output the expanded article directly without adding any explanations or annotations.' + wcHint;
+          return t('ai.system.expand', lang) + wcHint;
         case 'compress':
-          return 'You are a writing assistant skilled at compressing content. Please condense the article according to the user\'s requirements. Retain core viewpoints and key information, remove redundant and minor content, making the article more concise and impactful. Output the compressed article directly without adding any explanations or annotations.' + wcHint;
+          return t('ai.system.compress', lang) + wcHint;
         case 'summary':
-          return 'You are a writing assistant skilled at summarizing. Please generate a summary for the article according to the user\'s requirements. The summary should accurately reflect the core content and main viewpoints. Output the summary directly without adding any explanations or annotations.' + wcHint;
+          return t('ai.system.summary', lang) + wcHint;
         default:
-          return 'You are a professional writing assistant. Please help the user process text content. Output the result directly without adding any explanations or annotations.' + wcHint;
+          return t('ai.system.default', lang) + wcHint;
       }
     }
 
     function buildUserPrompt(fn, content, extraPrompt) {
+      const lang = locale.value;
       let userMsg = '';
       switch (fn) {
         case 'optimize':
-          userMsg = 'Please optimize the following article:\n\n' + content;
-          if (extraPrompt) userMsg += '\n\nOptimization direction: ' + extraPrompt;
+          userMsg = t('ai.user.optimize', lang) + content;
+          if (extraPrompt) userMsg += t('ai.user.optimize_direction', lang) + extraPrompt;
           break;
         case 'create':
-          userMsg = extraPrompt || 'Please create an article';
+          if (extraPrompt && editingTitle.value.trim()) {
+            userMsg = t('ai.user.create_title', lang) + editingTitle.value.trim() + t('ai.user.create_requirements', lang) + extraPrompt;
+          } else if (extraPrompt) {
+            userMsg = extraPrompt;
+          } else if (editingTitle.value.trim()) {
+            userMsg = t('ai.user.create_from_title', lang) + editingTitle.value.trim();
+          } else {
+            userMsg = t('ai.user.create_fallback', lang);
+          }
           break;
         case 'translate':
-          userMsg = 'Please translate the following article into ' + (extraPrompt || 'English') + ':\n\n' + content;
+          userMsg = t('ai.user.translate', lang) + (extraPrompt || t('ai.user.translate_default', lang)) + t('ai.user.translate_colon', lang) + content;
           break;
         case 'expand':
-          userMsg = 'Please expand the following article:\n\n' + content;
-          if (extraPrompt) userMsg += '\n\nExpansion direction: ' + extraPrompt;
+          userMsg = t('ai.user.expand', lang) + content;
+          if (extraPrompt) userMsg += t('ai.user.expand_direction', lang) + extraPrompt;
           break;
         case 'compress':
-          userMsg = 'Please compress the following article:\n\n' + content;
-          if (extraPrompt) userMsg += '\n\nCompression requirements: ' + extraPrompt;
+          userMsg = t('ai.user.compress', lang) + content;
+          if (extraPrompt) userMsg += t('ai.user.compress_direction', lang) + extraPrompt;
           break;
         case 'summary':
-          userMsg = 'Please generate a summary for the following article:\n\n' + content;
-          if (extraPrompt) userMsg += '\n\nSummary requirements: ' + extraPrompt;
+          userMsg = t('ai.user.summary', lang) + content;
+          if (extraPrompt) userMsg += t('ai.user.summary_direction', lang) + extraPrompt;
           break;
         default:
           userMsg = content;
@@ -1903,21 +2246,21 @@ const app = createApp({
 
     async function generateAiContent() {
       if (!aiConfig.endpoint) {
-        showToast('Please configure AI endpoint first', 'error');
+        showToast(t('toast.ai_config_required', locale.value), 'error');
         return;
       }
       if (aiGenerating.value) return;
 
-      // For create function, require prompt
-      if (aiFunction.value === 'create' && !aiPrompt.value.trim()) {
-        showToast('Please enter creation prompt', 'error');
+      // For create function, require prompt or title
+      if (aiFunction.value === 'create' && !aiPrompt.value.trim() && !editingTitle.value.trim()) {
+        showToast(t('toast.ai_prompt_required', locale.value), 'error');
         return;
       }
 
       // For other functions that use existing content, check if there's content
       const needsContent = ['optimize', 'translate', 'expand', 'compress', 'summary'];
       if (needsContent.includes(aiFunction.value) && !editingContent.value.trim()) {
-        showToast('Current note is empty, please enter content first', 'error');
+        showToast(t('toast.ai_content_required', locale.value), 'error');
         return;
       }
 
@@ -1956,10 +2299,10 @@ const app = createApp({
         if (content) {
           aiResult.value = content.trim();
         } else {
-          showToast('AI returned no content', 'error');
+          showToast(t('toast.ai_no_result', locale.value), 'error');
         }
       } catch(e) {
-        showToast('AI request failed: ' + e.message, 'error');
+        showToast(t('toast.ai_request_failed', locale.value) + e.message, 'error');
       } finally {
         aiGenerating.value = false;
       }
@@ -2015,7 +2358,7 @@ const app = createApp({
       }
 
       showAiDrawer.value = false;
-      showToast('Content inserted', 'success');
+      showToast(t('toast.content_inserted', locale.value), 'success');
     }
 
     // ============================================================
@@ -2023,6 +2366,8 @@ const app = createApp({
     // ============================================================
 
     return {
+      // i18n
+      locale, tl, toggleLocale,
       // Sidebar Control
       sidebarOpen, toggleSidebar, closeSidebar,
       showConfig, configForm, githubReady,
