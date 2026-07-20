@@ -1,0 +1,27 @@
+/* ===== AI CONFIG MODAL ===== */
+.ai-config-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+  font-size: 12px;
+}
+.ai-config-status.connected {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+}
+.ai-config-status.disconnected {
+  background: #fce4e4;
+  color: #c62828;
+  border: 1px solid #ffcdd2;
+}
+.ai-config-status .status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.ai-config-status.connected .status-dot { background: #4caf50; }
+.ai-config-status.disconnected .status-dot { background: #f44336; }

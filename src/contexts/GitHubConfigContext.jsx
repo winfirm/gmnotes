@@ -1,0 +1,87 @@
+// GitHubConfigContext：配置增删改查，githubConfigRef 供 fetch 频繁读取
+import { createContext, useContext, useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import { useToast } from './ToastContext';
+import { useI18n } from './I18nContext';
+import { STORAGE_KEY } from '../constants';
+
+const GitHubConfigContext = createContext(null);
+
+export function GitHubConfigProvider({ children }) {
+  const { showToast } = useToast();
+  const { t } = useI18n();
+
+  const [showConfig, setShowConfig] = useState(false);
+  const [configForm, setConfigForm] = useState({ token: '', owner: '', repo: '', path: '' });
+  const [githubReady, setGithubReady] = useState(false);
+  // githubConfig 频繁被读取但不需触发渲染，用 ref
+  const githubConfigRef = useRef({ token: '', owner: '', repo: '', path: '' });
+
+  const loadConfig = useCallback(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const c = JSON.parse(saved);
+        githubConfigRef.current = {
+          token: c.token || '',
+          owner: c.owner || '',
+          repo: c.repo || '',
+          path: c.path || ''
+        };
+        setConfigForm({ ...githubConfigRef.current });
+        setGithubReady(!!(c.token && c.owner && c.repo));
+      }
+    } catch (e) {}
+  }, []);
+
+  useEffect(() => { loadConfig(); }, [loadConfig]);
+
+  const setConfigField = useCallback((field, value) => {
+    setConfigForm(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+  const saveConfig = useCallback(() => {
+    const c = {
+      token: configForm.token.trim(),
+      owner: configForm.owner.trim(),
+      repo: configForm.repo.trim(),
+      path: configForm.path.trim().replace(/\/+$/, '')
+    };
+    if (!c.token || !c.owner || !c.repo) {
+      showToast(t('toast.config_required'), 'error');
+      return;
+    }
+    githubConfigRef.current = c;
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(c)); } catch (e) {}
+    setGithubReady(true);
+    setShowConfig(false);
+    showToast(t('toast.config_saved'), 'success');
+    // 触发同步由调用方或事件处理
+    window.dispatchEvent(new CustomEvent('gmnotes:config-saved'));
+  }, [configForm, showToast, t]);
+
+  const clearConfig = useCallback(() => {
+    try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+    githubConfigRef.current = { token: '', owner: '', repo: '', path: '' };
+    setConfigForm({ token: '', owner: '', repo: '', path: '' });
+    setGithubReady(false);
+    setShowConfig(false);
+    showToast(t('toast.config_cleared'), 'info');
+    window.dispatchEvent(new CustomEvent('gmnotes:config-cleared'));
+  }, [showToast, t]);
+
+  const value = useMemo(() => ({
+    showConfig, setShowConfig,
+    configForm, setConfigField,
+    githubReady,
+    githubConfigRef,
+    saveConfig, clearConfig
+  }), [showConfig, configForm, githubReady, setConfigField, saveConfig, clearConfig]);
+
+  return <GitHubConfigContext.Provider value={value}>{children}</GitHubConfigContext.Provider>;
+}
+
+export function useGitHubConfig() {
+  const ctx = useContext(GitHubConfigContext);
+  if (!ctx) throw new Error('useGitHubConfig must be used within GitHubConfigProvider');
+  return ctx;
+}

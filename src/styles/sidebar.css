@@ -1,0 +1,249 @@
+/* ===== SIDEBAR ===== */
+.sidebar {
+  width: 300px;
+  min-width: 300px;
+  background: var(--paper);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  transition: width var(--transition);
+  position: relative;
+  z-index: 10;
+}
+.sidebar-header {
+  padding: 20px 20px 12px;
+  border-bottom: 1px solid var(--border-light);
+  flex-shrink: 0;
+}
+.sidebar-header h1 {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sidebar-header h1 .dot {
+  width: 8px; height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+  display: inline-block;
+}
+.btn-lang-float {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  z-index: 100;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition);
+}
+.btn-lang-float:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-light);
+  box-shadow: var(--shadow-lg);
+}
+.sidebar-actions {
+  padding: 12px 20px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+.btn-new {
+  flex: 1;
+  height: 38px;
+  border: 1.5px dashed var(--border);
+  background: transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 13px;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all var(--transition);
+}
+.btn-new:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-light);
+}
+.btn-new:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-sync {
+  width: 38px; height: 38px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  transition: all var(--transition);
+  font-size: 16px;
+}
+.btn-sync:hover { border-color: var(--accent); color: var(--accent); }
+.btn-sync:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-sync.spinning svg { animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.btn-config {
+  width: 38px; height: 38px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  transition: all var(--transition);
+  font-size: 16px;
+}
+.btn-config:hover { border-color: var(--text-dim); color: var(--text); }
+.btn-config.configured { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
+.search-box {
+  padding: 8px 20px 12px;
+  flex-shrink: 0;
+}
+.search-input {
+  width: 100%;
+  height: 34px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0 12px;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 13px;
+  background: var(--surface);
+  color: var(--text);
+  outline: none;
+  transition: border-color var(--transition);
+}
+.search-input:focus { border-color: var(--accent); }
+.search-input::placeholder { color: var(--text-muted); }
+
+.note-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 12px 12px;
+}
+.note-list::-webkit-scrollbar { width: 4px; }
+.note-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.note-item {
+  padding: 14px 14px;
+  margin-bottom: 4px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition);
+  border: 1.5px solid transparent;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+.note-item:hover { background: var(--surface-hover); }
+.note-item.active {
+  background: var(--surface);
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+}
+.note-item .note-info { flex: 1; min-width: 0; }
+.note-item .note-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+.note-item .note-meta {
+  font-size: 9px;
+  color: var(--text-muted);
+  display: flex;
+  gap: 8px;
+}
+.note-item .note-delete {
+  opacity: 0;
+  width: 26px; height: 26px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all var(--transition);
+  margin-top: 2px;
+}
+.note-item:hover .note-delete { opacity: 1; }
+.note-item .note-delete:hover { color: var(--danger); background: var(--danger-light); }
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+}
+.empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.5; }
+.empty-state .empty-text { font-size: 13px; line-height: 1.6; }
+
+/* ===== SIDEBAR OVERLAY (for mobile) ===== */
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(59,52,39,0.5);
+  z-index: 99;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.sidebar-overlay.active {
+  display: block;
+  opacity: 1;
+}
+
+/* ===== MENU BUTTON (hidden on desktop) ===== */
+.menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text-dim);
+  flex-shrink: 0;
+  transition: all var(--transition);
+}
+.menu-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-light);
+}

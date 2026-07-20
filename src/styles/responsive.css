@@ -1,0 +1,259 @@
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  /* Show menu button on mobile */
+  .menu-btn {
+    display: flex;
+  }
+
+  /* Sidebar - hidden by default, slides in from left */
+  .sidebar {
+    position: fixed;
+    left: -85vw;
+    width: 85vw;
+    max-width: 300px;
+    height: 100vh;
+    z-index: 100;
+    transition: left 0.3s ease;
+    box-shadow: none;
+  }
+  .sidebar.open {
+    left: 0;
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* Main content */
+  .main {
+    width: 100vw;
+  }
+
+  /* Header adjustments */
+  .main-header {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  /* Title input - take remaining space */
+  .title-input {
+    font-size: 16px;
+    min-width: 0;
+  }
+
+  /* Mode tabs - smaller on mobile */
+  .mode-tabs {
+    flex-shrink: 0;
+  }
+  .mode-tab {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+
+  /* AI button - smaller on mobile */
+  .btn-ai {
+    height: 32px;
+    padding: 0 10px;
+    font-size: 11px;
+  }
+
+  /* Editor and preview - full width */
+  .editor-pane, .preview-pane {
+    padding: 16px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* Welcome screen adjustments */
+  .welcome {
+    padding: 20px;
+  }
+  .welcome .welcome-icon {
+    font-size: 48px;
+  }
+  .welcome .welcome-title {
+    font-size: 16px;
+  }
+  .welcome .welcome-sub {
+    font-size: 12px;
+  }
+  .welcome-menu-btn {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+  }
+
+  /* Note list - better touch targets */
+  .note-item {
+    padding: 12px;
+    margin-bottom: 2px;
+  }
+  .note-item .note-title {
+    font-size: 13px;
+  }
+  .note-item .note-meta {
+    font-size: 10px;
+  }
+
+  /* Delete button - always visible on mobile for easier access */
+  .note-item .note-delete {
+    opacity: 0.7;
+    width: 32px;
+    height: 32px;
+  }
+
+  /* Sidebar actions - better touch targets */
+  .sidebar-actions {
+    padding: 8px 12px;
+  }
+  .btn-new {
+    height: 40px;
+    font-size: 12px;
+  }
+  .btn-sync, .btn-config {
+    width: 40px;
+    height: 40px;
+  }
+
+  /* Search box */
+  .search-box {
+    padding: 8px 12px;
+  }
+  .search-input {
+    height: 36px;
+    font-size: 14px;
+  }
+
+  /* Modal - full width on mobile */
+  .modal {
+    width: 95vw;
+    max-width: 95vw;
+    padding: 20px;
+    margin: 10px;
+  }
+  .modal h2 {
+    font-size: 16px;
+    margin-bottom: 16px;
+  }
+  .modal input {
+    height: 44px;
+    font-size: 14px;
+  }
+  .modal-footer button {
+    height: 40px;
+    padding: 0 16px;
+    font-size: 12px;
+  }
+
+  /* Toast - adjust position */
+  .toast {
+    bottom: 20px;
+    left: 16px;
+    right: 16px;
+    transform: none;
+    text-align: center;
+  }
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateY(8px); }
+  }
+
+  /* AI Drawer - bottom sheet on mobile */
+  .ai-drawer-overlay {
+    justify-content: center;
+    align-items: flex-end;
+  }
+  .ai-drawer {
+    width: 100%;
+    max-width: 100%;
+    height: 85vh;
+    max-height: 85vh;
+    border-radius: var(--radius) var(--radius) 0 0;
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+  }
+
+  /* AI Drawer header */
+  .ai-drawer-header {
+    padding: 12px 16px;
+  }
+  .ai-drawer-header h2 {
+    font-size: 15px;
+  }
+
+  /* AI Drawer body */
+  .ai-drawer-body {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  /* AI Function grid - single column on mobile */
+  .ai-function-grid {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .ai-function-btn {
+    height: 44px;
+    font-size: 13px;
+  }
+
+  /* AI Word count - horizontal scroll */
+  .ai-wordcount-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .ai-wordcount-grid {
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .ai-wordcount-btn {
+    height: 36px;
+    padding: 0 16px;
+    font-size: 12px;
+  }
+
+  /* AI Prompt area */
+  .ai-prompt-input {
+    min-height: 80px;
+    font-size: 14px;
+  }
+
+  /* AI Result area */
+  .ai-result-content {
+    min-height: 120px;
+    font-size: 14px;
+  }
+
+  /* AI Drawer footer */
+  .ai-drawer-footer {
+    padding: 12px 16px;
+    gap: 8px;
+  }
+  .ai-drawer-footer button {
+    height: 40px;
+    padding: 0 14px;
+    font-size: 12px;
+  }
+
+  /* Insert mode modal - full width */
+  .insert-mode-option {
+    padding: 14px;
+  }
+  .insert-mode-option .option-title {
+    font-size: 14px;
+  }
+  .insert-mode-option .option-desc {
+    font-size: 12px;
+  }
+}
+
+/* ===== TABLET (769px - 1024px) ===== */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sidebar {
+    width: 280px;
+    min-width: 280px;
+  }
+  .editor-pane, .preview-pane {
+    padding: 20px;
+  }
+}
