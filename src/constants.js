@@ -1,5 +1,6 @@
 // 常量定义（必须保留原 key 名称以兼容用户已有数据）
 export const STORAGE_KEY = 'gmnotes_github_config';
+export const DIR_STORAGE_KEY = 'gmnotes_current_dir';
 export const LANG_STORAGE_KEY = 'gmnotes_locale';
 export const AI_STORAGE_KEY = 'gmnotes_ai_config';
 export const DEFAULT_AI_ENDPOINT = 'http://localhost:1234/v1/chat/completions';

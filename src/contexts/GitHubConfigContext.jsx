@@ -2,7 +2,8 @@
 import { createContext, useContext, useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useToast } from './ToastContext';
 import { useI18n } from './I18nContext';
-import { STORAGE_KEY } from '../constants';
+import { STORAGE_KEY, DIR_STORAGE_KEY } from '../constants';
+import { parsePath } from '../lib/githubApi';
 
 const GitHubConfigContext = createContext(null);
 
@@ -15,6 +16,15 @@ export function GitHubConfigProvider({ children }) {
   const [githubReady, setGithubReady] = useState(false);
   // githubConfig 频繁被读取但不需触发渲染，用 ref
   const githubConfigRef = useRef({ token: '', owner: '', repo: '', path: '' });
+  
+  // 当前选中的目录
+  const [currentDir, setCurrentDir] = useState(() => {
+    try {
+      return localStorage.getItem(DIR_STORAGE_KEY) || '';
+    } catch (e) {
+      return '';
+    }
+  });
 
   const loadConfig = useCallback(() => {
     try {
@@ -29,6 +39,17 @@ export function GitHubConfigProvider({ children }) {
         };
         setConfigForm({ ...githubConfigRef.current });
         setGithubReady(!!(c.token && c.owner && c.repo));
+        
+        // 初始化 currentDir：如果当前目录不在路径列表中，重置为第一个目录
+        const dirs = parsePath(c.path);
+        const savedDir = localStorage.getItem(DIR_STORAGE_KEY);
+        // '' 始终有效（default 标签），或 savedDir 在子目录列表中
+        if (savedDir === '' || dirs.includes(savedDir)) {
+          setCurrentDir(savedDir);
+        } else if (dirs.length > 0) {
+          setCurrentDir(dirs[0]);
+          try { localStorage.setItem(DIR_STORAGE_KEY, dirs[0]); } catch (e) {}
+        }
       }
     } catch (e) {}
   }, []);
@@ -74,8 +95,9 @@ export function GitHubConfigProvider({ children }) {
     configForm, setConfigField,
     githubReady,
     githubConfigRef,
-    saveConfig, clearConfig
-  }), [showConfig, configForm, githubReady, setConfigField, saveConfig, clearConfig]);
+    saveConfig, clearConfig,
+    currentDir, setCurrentDir
+  }), [showConfig, configForm, githubReady, setConfigField, saveConfig, clearConfig, currentDir, setCurrentDir]);
 
   return <GitHubConfigContext.Provider value={value}>{children}</GitHubConfigContext.Provider>;
 }

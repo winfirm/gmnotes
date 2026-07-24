@@ -13,7 +13,7 @@ const NotesContext = createContext(null);
 export function NotesProvider({ children }) {
   const { showToast } = useToast();
   const { t } = useI18n();
-  const { githubConfigRef, githubReady } = useGitHubConfig();
+  const { githubConfigRef, githubReady, currentDir } = useGitHubConfig();
 
   const [notes, setNotes] = useState([]);
   const [noteContents, setNoteContents] = useState({});
@@ -39,14 +39,16 @@ export function NotesProvider({ children }) {
   }, [notes, searchQuery]);
 
   // ---- Sync ----
-  const syncFromGitHub = useCallback(async () => {
+  const syncFromGitHub = useCallback(async (dir) => {
     if (!githubReady) return;
     if (syncingRef.current) return;
     syncingRef.current = true;
     setSyncing(true);
     const config = githubConfigRef.current;
+    // 使用传入的 dir 参数，如果没有则使用 currentDir
+    const targetDir = dir !== undefined ? dir : currentDir;
     try {
-      const result = await githubApi.syncIndex(config);
+      const result = await githubApi.syncIndex(config, targetDir);
       indexShaRef.current = result.sha;
       setNotes(result.notes);
       // 保留当前笔记选择
@@ -56,7 +58,7 @@ export function NotesProvider({ children }) {
         if (found) {
           // 触发内容加载（若未缓存）
           if (noteContents[found.id] === undefined) {
-            githubApi.loadNoteContent(config, found.id)
+            githubApi.loadNoteContent(config, found.id, targetDir)
               .then(c => setNoteContents(prev => ({ ...prev, [found.id]: c })))
               .catch(() => setNoteContents(prev => ({ ...prev, [found.id]: '' })));
           }
@@ -83,7 +85,7 @@ export function NotesProvider({ children }) {
       syncingRef.current = false;
       setSyncing(false);
     }
-  }, [githubReady, githubConfigRef, t, showToast, noteContents]);
+  }, [githubReady, githubConfigRef, currentDir, t, showToast, noteContents]);
 
   // 监听配置保存事件，自动同步
   useEffect(() => {
@@ -98,7 +100,7 @@ export function NotesProvider({ children }) {
       if (!githubReady || !currentNote) return;
       const config = githubConfigRef.current;
       try {
-        await githubApi.saveNoteFile(config, currentNote.id, editingContent);
+        await githubApi.saveNoteFile(config, currentNote.id, editingContent, currentDir);
         // 更新 index 时间戳
         setNotes(prev => {
           const idx = prev.findIndex(n => n.id === currentNote.id);
@@ -110,7 +112,7 @@ export function NotesProvider({ children }) {
               updatedAt: new Date().toISOString()
             };
             // 写回 GitHub index.json
-            githubApi.saveIndex(config, indexShaRef.current, updated, 'Update note via GMNotes')
+            githubApi.saveIndex(config, indexShaRef.current, updated, 'Update note via GMNotes', currentDir)
               .then(newSha => { indexShaRef.current = newSha; })
               .catch(err => {
                 console.error('[saveIndex]', err);
@@ -126,7 +128,7 @@ export function NotesProvider({ children }) {
         console.error('[doSave]', e);
       }
     };
-  }, [githubReady, currentNote, editingContent, editingTitle, githubConfigRef, t, showToast]);
+  }, [githubReady, currentNote, editingContent, editingTitle, githubConfigRef, currentDir, t, showToast]);
 
   // ---- 笔记 CRUD ----
   const createNote = useCallback(async () => {
@@ -144,16 +146,16 @@ export function NotesProvider({ children }) {
     setEditingContent('');
     setCurrentNote(note);
     try {
-      await githubApi.saveNoteFile(config, note.id, '');
+      await githubApi.saveNoteFile(config, note.id, '', currentDir);
       const newNotes = [note, ...notes];
-      const newSha = await githubApi.saveIndex(config, indexShaRef.current, newNotes, 'Create note via GMNotes');
+      const newSha = await githubApi.saveIndex(config, indexShaRef.current, newNotes, 'Create note via GMNotes', currentDir);
       indexShaRef.current = newSha;
       showToast(t('toast.note_created'), 'success');
     } catch (e) {
       showToast(t('toast.note_create_failed') + (e.message || ''), 'error');
       console.error('[createNote]', e);
     }
-  }, [githubReady, githubConfigRef, notes, t, showToast]);
+  }, [githubReady, githubConfigRef, notes, currentDir, t, showToast]);
 
   const selectNote = useCallback(async (note) => {
     setCurrentNote(note);
@@ -164,7 +166,7 @@ export function NotesProvider({ children }) {
       setEditingContent('');
       const config = githubConfigRef.current;
       try {
-        const content = await githubApi.loadNoteContent(config, note.id);
+        const content = await githubApi.loadNoteContent(config, note.id, currentDir);
         // 仍选中当前 note 才更新
         setCurrentNote(cur => {
           if (cur && cur.id === note.id) {
@@ -182,7 +184,7 @@ export function NotesProvider({ children }) {
     if (window.innerWidth <= MOBILE_BREAKPOINT) {
       window.dispatchEvent(new CustomEvent('gmnotes:close-sidebar'));
     }
-  }, [noteContents, githubConfigRef]);
+  }, [noteContents, githubConfigRef, currentDir]);
 
   const onTitleChange = useCallback((value) => {
     if (!currentNote) return;
@@ -240,7 +242,7 @@ export function NotesProvider({ children }) {
             : '';
           // 触发未缓存内容的加载
           if (noteContents[nextCurrent.id] === undefined) {
-            githubApi.loadNoteContent(config, nextCurrent.id)
+            githubApi.loadNoteContent(config, nextCurrent.id, currentDir)
               .then(c => setNoteContents(p => ({ ...p, [nextCurrent.id]: c })))
               .catch(() => setNoteContents(p => ({ ...p, [nextCurrent.id]: '' })));
           }
@@ -252,15 +254,15 @@ export function NotesProvider({ children }) {
     setEditingTitle(nextTitle);
     setEditingContent(nextContent);
     try {
-      await githubApi.deleteNoteFile(config, note.id);
-      const newSha = await githubApi.saveIndex(config, indexShaRef.current, nextNotes, 'Delete note via GMNotes');
+      await githubApi.deleteNoteFile(config, note.id, currentDir);
+      const newSha = await githubApi.saveIndex(config, indexShaRef.current, nextNotes, 'Delete note via GMNotes', currentDir);
       indexShaRef.current = newSha;
       showToast(t('toast.note_deleted'), 'info');
     } catch (e) {
       showToast(t('toast.note_delete_failed') + (e.message || ''), 'error');
       console.error('[deleteNote]', e);
     }
-  }, [githubConfigRef, notes, noteContents, t, showToast]);
+  }, [githubConfigRef, notes, noteContents, currentDir, t, showToast]);
 
   // ---- AI 插入用：直接覆盖 editingContent ----
   const insertContent = useCallback((newContent, mode) => {
@@ -315,7 +317,10 @@ export function NotesProvider({ children }) {
     syncFromGitHub,
     insertContent,
     indexShaRef,
-    setEditingContent
+    setEditingContent,
+    setCurrentNote,
+    setEditingTitle,
+    setNoteContents
   }), [notes, currentNote, editingTitle, editingContent, noteContents, syncing,
       searchQuery, filteredNotes, selectNote, createNote, deleteNote,
       onTitleChange, onContentChange, syncFromGitHub, insertContent]);

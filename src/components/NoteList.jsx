@@ -3,6 +3,7 @@ import { useI18n } from '../contexts/I18nContext.jsx';
 import { useNotes } from '../contexts/NotesContext.jsx';
 import { useGitHubConfig } from '../contexts/GitHubConfigContext.jsx';
 import { NoteItem } from './NoteItem.jsx';
+import { DirTabs } from './DirTabs.jsx';
 
 export function NoteList() {
   const { t } = useI18n();
@@ -20,6 +21,7 @@ export function NoteList() {
 
   return (
     <>
+      <DirTabs />
       <div className="search-box">
         <input
           className="search-input"
