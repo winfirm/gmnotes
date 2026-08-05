@@ -5,6 +5,8 @@ import { ToastProvider } from './contexts/ToastContext.jsx';
 import { GitHubConfigProvider } from './contexts/GitHubConfigContext.jsx';
 import { NotesProvider } from './contexts/NotesContext.jsx';
 import { AiProvider } from './contexts/AiContext.jsx';
+import { ImageProvider } from './contexts/ImageContext.jsx';
+import { ImageGalleryDrawer } from './components/images/ImageGalleryDrawer.jsx';
 import { useSidebar } from './hooks/useSidebar';
 import { useAi } from './contexts/AiContext.jsx';
 import { Sidebar } from './components/Sidebar.jsx';
@@ -49,6 +51,7 @@ function AppShell() {
       <AiConfigModal />
       <AiDrawer />
       <InsertModeModal />
+      <ImageGalleryDrawer />
       <Toast />
       <LanguageToggle />
     </React.Fragment>
@@ -61,9 +64,11 @@ export function App() {
       <ToastProvider>
         <GitHubConfigProvider>
           <NotesProvider>
-            <AiProvider>
-              <AppShell />
-            </AiProvider>
+            <ImageProvider>
+              <AiProvider>
+                <AppShell />
+              </AiProvider>
+            </ImageProvider>
           </NotesProvider>
         </GitHubConfigProvider>
       </ToastProvider>
