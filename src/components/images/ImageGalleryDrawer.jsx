@@ -38,11 +38,13 @@ function LazyThumb({ image }) {
 
   useEffect(() => {
     if (!visible) return;
-    const rawUrl = `https://raw.githubusercontent.com/${githubConfigRef.current.owner}/${githubConfigRef.current.repo}/HEAD/${image.path}`;
-    getBlobUrlForRaw(githubConfigRef.current, rawUrl)
-      .then(url => { if (url) setSrc(url); else setFailed(true); })
-      .catch(() => setFailed(true));
-  }, [visible, image.path, githubConfigRef]);
+    let cancelled = false;
+    getRawUrl(githubConfigRef.current, image.name)
+      .then(rawUrl => getBlobUrlForRaw(githubConfigRef.current, rawUrl))
+      .then(url => { if (!cancelled && url) setSrc(url); else if (!cancelled) setFailed(true); })
+      .catch(() => { if (!cancelled) setFailed(true); });
+    return () => { cancelled = true; };
+  }, [visible, image.name, githubConfigRef]);
 
   return (
     <div ref={ref} className="gallery-thumb">
@@ -89,8 +91,11 @@ function GalleryCard({ image }) {
   };
 
   const handleDelete = async () => {
+    if (busy) return;
     if (!window.confirm(t('gallery.delete_confirm'))) return;
+    setBusy(true);
     await deleteImage(image);
+    setBusy(false);
   };
 
   return (
@@ -102,7 +107,7 @@ function GalleryCard({ image }) {
       </button>
       <div className="gallery-card-actions">
         <button onClick={handleCopy} title={t('gallery.copy')}>🔗</button>
-        <button onClick={handleDelete} title={t('gallery.delete')}>🗑</button>
+        <button onClick={handleDelete} title={t('gallery.delete')} disabled={busy}>🗑</button>
       </div>
     </div>
   );

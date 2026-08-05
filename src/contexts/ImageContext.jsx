@@ -1,5 +1,5 @@
 // ImageContext：图库状态管理
-import { createContext, useContext, useState, useCallback, useMemo } from 'react';
+import { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
 import { useToast } from './ToastContext';
 import { useI18n } from './I18nContext';
 import { useGitHubConfig } from './GitHubConfigContext';
@@ -22,13 +22,18 @@ function timestampName() {
 export function ImageProvider({ children }) {
   const { showToast } = useToast();
   const { t } = useI18n();
-  const { githubConfigRef, githubReady } = useGitHubConfig();
+  const { githubConfigRef, githubReady, configVersion } = useGitHubConfig();
 
   const [showGallery, setShowGallery] = useState(false);
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [compressEnabled, setCompressEnabled] = useState(true);
+
+  // 配置变化（切换仓库/清除配置）时清空旧图库数据
+  useEffect(() => {
+    setImages([]);
+  }, [configVersion]);
 
   const refreshImages = useCallback(async () => {
     if (!githubReady) return;
@@ -59,6 +64,7 @@ export function ImageProvider({ children }) {
     let ok = 0;
     try {
       for (const file of Array.from(files)) {
+        if (!file.type || !file.type.startsWith('image/')) continue;
         try {
           let blob = file;
           let ext = originalExt(file);
