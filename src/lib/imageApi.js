@@ -91,7 +91,10 @@ export async function uploadImage(config, name, base64) {
 export async function deleteImage(config, name) {
   const existing = await githubFetch(config, apiBase(config) + '/' + imagePath(name));
   const result = await githubDelete(config, apiBase(config) + '/' + imagePath(name) + '?sha=' + existing.sha);
-  invalidateBlobUrl(await getRawUrl(config, name));
+  // 缓存失效为尽力而为：失败不应让已成功的删除抛错
+  getRawUrl(config, name)
+    .then(url => invalidateBlobUrl(url))
+    .catch(() => {});
   return result;
 }
 
