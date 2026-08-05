@@ -3,9 +3,12 @@ import { apiBase, githubFetch, githubDelete } from './githubApi';
 
 export const IMAGE_DIR = 'images';
 
+// Blob URL 缓存上限；超出后逐出最旧项并 revoke
+const MAX_BLOB_CACHE = 100;
+
 // 默认分支缓存：owner/repo -> branch
 const branchCache = new Map();
-// raw URL -> Blob URL 缓存（跨渲染复用）
+// raw URL -> Blob URL 缓存（跨渲染复用，插入有序）
 const blobUrlCache = new Map();
 // 进行中的下载：rawUrl -> Promise
 const inflight = new Map();
@@ -14,21 +17,31 @@ function imagePath(name) {
   return IMAGE_DIR + '/' + name;
 }
 
+function cacheBlobUrl(rawUrl, url) {
+  if (blobUrlCache.has(rawUrl)) {
+    URL.revokeObjectURL(blobUrlCache.get(rawUrl));
+  }
+  blobUrlCache.set(rawUrl, url);
+  if (blobUrlCache.size > MAX_BLOB_CACHE) {
+    const oldest = blobUrlCache.keys().next().value;
+    URL.revokeObjectURL(blobUrlCache.get(oldest));
+    blobUrlCache.delete(oldest);
+  }
+}
+
+function invalidateBlobUrl(rawUrl) {
+  if (blobUrlCache.has(rawUrl)) {
+    URL.revokeObjectURL(blobUrlCache.get(rawUrl));
+    blobUrlCache.delete(rawUrl);
+  }
+  inflight.delete(rawUrl);
+}
+
 /** 获取仓库默认分支（构造 raw URL 用），带缓存 */
 export async function getDefaultBranch(config) {
   const key = config.owner + '/' + config.repo;
   if (branchCache.has(key)) return branchCache.get(key);
-  const res = await fetch(`https://api.github.com/repos/${config.owner}/${config.repo}`, {
-    headers: {
-      'Authorization': `token ${config.token}`,
-      'Accept': 'application/vnd.github.v3+json'
-    }
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.message || `HTTP ${res.status}`);
-  }
-  const data = await res.json();
+  const data = await githubFetch(config, `https://api.github.com/repos/${config.owner}/${config.repo}`);
   const branch = data.default_branch || 'main';
   branchCache.set(key, branch);
   return branch;
@@ -77,7 +90,9 @@ export async function uploadImage(config, name, base64) {
 /** 删除图片：先 GET 拿 sha 再 DELETE */
 export async function deleteImage(config, name) {
   const existing = await githubFetch(config, apiBase(config) + '/' + imagePath(name));
-  return githubDelete(config, apiBase(config) + '/' + imagePath(name) + '?sha=' + existing.sha);
+  const result = await githubDelete(config, apiBase(config) + '/' + imagePath(name) + '?sha=' + existing.sha);
+  invalidateBlobUrl(await getRawUrl(config, name));
+  return result;
 }
 
 /** 带 token 下载图片为 Blob（私库预览用） */
@@ -111,7 +126,8 @@ export function getBlobUrlForRaw(config, rawUrl) {
   const p = fetchImageBlob(config, path)
     .then(blob => {
       const url = URL.createObjectURL(blob);
-      blobUrlCache.set(rawUrl, url);
+      cacheBlobUrl(rawUrl, url);
+      inflight.delete(rawUrl);
       return url;
     })
     .catch(err => {
