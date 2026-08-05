@@ -8,11 +8,15 @@ import { compressImage, blobToBase64, originalExt } from '../lib/imageCompressio
 
 const ImageContext = createContext(null);
 
+let nameSeq = 0;
+
 function timestampName() {
   const d = new Date();
   const pad = n => String(n).padStart(2, '0');
+  nameSeq = (nameSeq + 1) % 1000;
+  const seq = String(nameSeq).padStart(3, '0');
   return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}_` +
-    `${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+    `${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}_${seq}`;
 }
 
 export function ImageProvider({ children }) {
