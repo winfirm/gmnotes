@@ -43,3 +43,5 @@
 <p align="center">
   Built with <a href="https://github.com" target="_blank">GitHub</a> API · Data stored in your repo
 </p>
+
+---
