@@ -54,3 +54,15 @@
 .preview-pane th, .preview-pane td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; }
 .preview-pane th { background: var(--paper); font-weight: 600; }
 .preview-pane img { max-width: 100%; border-radius: var(--radius-sm); }
+
+.preview-pane .mermaid {
+  background: none !important;
+  padding: 0 !important;
+  border: none !important;
+  overflow: visible !important;
+  text-align: center;
+}
+.preview-pane .mermaid svg {
+  max-width: 100%;
+  height: auto;
+}

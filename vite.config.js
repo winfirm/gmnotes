@@ -12,12 +12,12 @@ export default defineConfig({
     })
   ],
   build: {
-    outDir: 'dist',
+    outDir: 'build',
     emptyOutDir: true,
     target: 'es2018',
     cssCodeSplit: false,
     rollupOptions: {
-      input: { main: './app.html' },
+      input: { main: './gmnotes.html' },
       output: {
         inlineDynamicImports: true,
         manualChunks: undefined
