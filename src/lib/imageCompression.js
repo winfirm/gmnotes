@@ -37,7 +37,9 @@ function pickOutputType(file) {
 }
 
 function extForType(type) {
-  return type === 'image/webp' ? 'webp' : 'jpg';
+  if (type === 'image/webp') return 'webp';
+  if (type === 'image/png') return 'png';
+  return 'jpg';
 }
 
 /**
@@ -46,7 +48,7 @@ function extForType(type) {
  * @param {{maxEdge?:number, quality?:number}} options
  */
 export async function compressImage(file, options = {}) {
-  const maxEdge = options.maxEdge || MAX_EDGE;
+  const maxEdge = options.maxEdge ?? MAX_EDGE;
   const quality = options.quality ?? JPEG_QUALITY;
   if (!isCompressible(file)) {
     return { blob: file, ext: originalExt(file) };
@@ -54,6 +56,10 @@ export async function compressImage(file, options = {}) {
   const img = await loadImage(file);
   const w = img.naturalWidth || 0;
   const h = img.naturalHeight || 0;
+  // 尺寸为 0 时无法缩放，直接返回原图
+  if (w === 0 || h === 0) {
+    return { blob: file, ext: originalExt(file) };
+  }
   // 小图直接返回原图
   if (w <= maxEdge && h <= maxEdge && file.size < 300 * 1024) {
     return { blob: file, ext: originalExt(file) };
@@ -65,20 +71,24 @@ export async function compressImage(file, options = {}) {
   canvas.width = cw;
   canvas.height = ch;
   const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    return { blob: file, ext: originalExt(file) };
+  }
   ctx.drawImage(img, 0, 0, cw, ch);
   const outType = pickOutputType(file);
   let blob;
   try {
     blob = await canvasToBlob(canvas, outType, quality);
   } catch (e) {
-    // WebP 不支持时回退 PNG
+    // 非标准环境抛错时回退 PNG
     blob = await canvasToBlob(canvas, 'image/png', 0.9);
   }
   // 压缩后仍大于原图则保留原图
   if (blob.size >= file.size) {
     return { blob: file, ext: originalExt(file) };
   }
-  return { blob, ext: extForType(outType) };
+  // 以实际输出格式决定扩展名（不支持 WebP 时会静默输出 PNG）
+  return { blob, ext: extForType(blob.type) };
 }
 
 /** Blob/File → base64（去掉 data URL 前缀） */
