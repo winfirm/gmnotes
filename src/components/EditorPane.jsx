@@ -2,11 +2,13 @@
 import { useI18n } from '../contexts/I18nContext.jsx';
 import { useNotes } from '../contexts/NotesContext.jsx';
 import { useAi } from '../contexts/AiContext.jsx';
+import { useImages } from '../contexts/ImageContext.jsx';
 
 export function EditorPane({ onToggleSidebar, previewMode, onTogglePreview, textareaRef }) {
   const { t } = useI18n();
   const { currentNote, editingTitle, editingContent, onTitleChange, onContentChange } = useNotes();
   const { openAiDrawer } = useAi();
+  const { openGallery } = useImages();
 
   if (!currentNote) return null;
 
@@ -33,9 +35,14 @@ export function EditorPane({ onToggleSidebar, previewMode, onTogglePreview, text
           placeholder={t('editor.title_placeholder')}
         />
         {!previewMode && (
-          <button className="btn-ai" onClick={openAiDrawer} title={t('editor.ai.tooltip')}>
-            AI+
-          </button>
+          <>
+            <button className="btn-ai" onClick={openGallery} title={t('editor.image.tooltip')}>
+              🖼
+            </button>
+            <button className="btn-ai" onClick={openAiDrawer} title={t('editor.ai.tooltip')}>
+              AI+
+            </button>
+          </>
         )}
         <div className="mode-tabs">
           <button
