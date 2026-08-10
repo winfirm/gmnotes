@@ -52,7 +52,8 @@ export async function githubFetch(config, url, options = {}) {
     'Accept': 'application/vnd.github.v3+json',
     ...options.headers
   };
-  const res = await fetch(url, { ...options, headers });
+  // cache: 'no-store'：读取 sha 用于覆盖写入，绝不能命中浏览器缓存的过期响应
+  const res = await fetch(url, { ...options, cache: 'no-store', headers });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.message || `HTTP ${res.status}`);

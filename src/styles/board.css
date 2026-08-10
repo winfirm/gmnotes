@@ -1,0 +1,179 @@
+/* ===== QUICKDRAW 画图 / 白板查看器 ===== */
+.board-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(59, 52, 39, 0.35);
+  backdrop-filter: blur(3px);
+  z-index: 210;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 画图模态框：居中大画布 */
+.board-drawer {
+  width: min(92vw, 980px);
+  height: min(88vh, 700px);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: boardZoomIn 0.2s ease;
+}
+
+/* 查看器：更大的只读画布 */
+.board-viewer {
+  width: min(96vw, 1200px);
+  height: min(92vh, 800px);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: boardZoomIn 0.2s ease;
+}
+
+@keyframes boardZoomIn {
+  from { transform: scale(0.96); opacity: 0; }
+}
+
+.board-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.board-header h2 {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.board-header .close-btn {
+  width: 32px; height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  transition: all var(--transition);
+}
+.board-header .close-btn:hover { background: var(--surface-hover); color: var(--text); }
+
+.board-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.board-header-actions .btn-primary {
+  height: 34px;
+  padding: 0 16px;
+  border-radius: var(--radius-sm);
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  background: var(--accent);
+  border: 1.5px solid var(--accent);
+  color: #fff;
+  transition: all var(--transition);
+}
+.board-header-actions .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.board-header-actions .btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.board-body {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  background: var(--paper);
+}
+
+.board-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.board-footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.board-footer button {
+  height: 38px;
+  padding: 0 20px;
+  border-radius: var(--radius-sm);
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+}
+.board-footer button:hover { border-color: var(--text-dim); color: var(--text); }
+.board-footer button.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.board-footer button.btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.board-footer button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* quickdraw 画布占满 body */
+.board-body .qd-board { width: 100%; height: 100%; }
+
+/* 预览中的白板链接样式 */
+.preview-pane a[href*="/whiteboards/"] {
+  background: var(--accent-light);
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+  text-decoration: none;
+  color: var(--accent);
+  font-weight: 500;
+  display: inline-block;
+}
+.preview-pane a[href*="/whiteboards/"]:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* 预览中的白板缩略图（嵌套链接 img） */
+.preview-pane a[href*="/whiteboards/"] img {
+  display: block;
+  max-width: 320px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  margin: 4px 0;
+  transition: all var(--transition);
+}
+.preview-pane a[href*="/whiteboards/"] img:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+}

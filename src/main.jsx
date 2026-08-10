@@ -16,6 +16,7 @@ import './styles/insert-mode.css';
 import './styles/language-toggle.css';
 import './styles/dir-tabs.css';
 import './styles/image-gallery.css';
+import './styles/board.css';
 import './styles/responsive.css';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));

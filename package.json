@@ -6,16 +6,23 @@
   "scripts": {
     "dev": "vite gmnotes.html",
     "build": "vite build && cp index.html build/index.html",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run"
   },
   "dependencies": {
+    "@quickdrawjs/react": "^0.2.0",
     "marked": "^12.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.3",
     "@vitejs/plugin-react": "^4.3.1",
+    "jsdom": "^29.1.1",
     "vite": "^5.4.0",
-    "vite-plugin-singlefile": "^2.0.0"
+    "vite-plugin-singlefile": "^2.0.0",
+    "vitest": "^4.1.10"
   }
 }

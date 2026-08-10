@@ -6,7 +6,10 @@ import { GitHubConfigProvider } from './contexts/GitHubConfigContext.jsx';
 import { NotesProvider } from './contexts/NotesContext.jsx';
 import { AiProvider } from './contexts/AiContext.jsx';
 import { ImageProvider } from './contexts/ImageContext.jsx';
+import { BoardProvider } from './contexts/BoardContext.jsx';
 import { ImageGalleryDrawer } from './components/images/ImageGalleryDrawer.jsx';
+import { BoardDrawer } from './components/boards/BoardDrawer.jsx';
+import { BoardViewer } from './components/boards/BoardViewer.jsx';
 import { useSidebar } from './hooks/useSidebar';
 import { useAi } from './contexts/AiContext.jsx';
 import { Sidebar } from './components/Sidebar.jsx';
@@ -52,6 +55,8 @@ function AppShell() {
       <AiDrawer />
       <InsertModeModal />
       <ImageGalleryDrawer />
+      <BoardDrawer />
+      <BoardViewer />
       <Toast />
       <LanguageToggle />
     </React.Fragment>
@@ -65,9 +70,11 @@ export function App() {
         <GitHubConfigProvider>
           <NotesProvider>
             <ImageProvider>
-              <AiProvider>
-                <AppShell />
-              </AiProvider>
+              <BoardProvider>
+                <AiProvider>
+                  <AppShell />
+                </AiProvider>
+              </BoardProvider>
             </ImageProvider>
           </NotesProvider>
         </GitHubConfigProvider>

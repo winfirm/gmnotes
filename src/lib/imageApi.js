@@ -29,7 +29,8 @@ function cacheBlobUrl(rawUrl, url) {
   }
 }
 
-function invalidateBlobUrl(rawUrl) {
+/** 使 raw URL 的 blob 缓存失效并释放（覆盖更新文件后调用，预览才会重新拉取新内容） */
+export function invalidateBlobUrl(rawUrl) {
   if (blobUrlCache.has(rawUrl)) {
     URL.revokeObjectURL(blobUrlCache.get(rawUrl));
     blobUrlCache.delete(rawUrl);
@@ -98,9 +99,10 @@ export async function deleteImage(config, name) {
   return result;
 }
 
-/** 带 token 下载图片为 Blob（私库预览用） */
+/** 带 token 下载图片为 Blob（私库预览用）；禁用缓存以便覆盖更新后能拉到最新内容 */
 export async function fetchImageBlob(config, path) {
   const res = await fetch(apiBase(config) + '/' + path, {
+    cache: 'no-store',
     headers: {
       'Authorization': `token ${config.token}`,
       'Accept': 'application/vnd.github.v3.raw'
