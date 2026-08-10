@@ -1,9 +1,16 @@
 // boardApi 纯函数测试：HTML 生成 / JSON 提取 / 文件名 / URL 构造
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // mock 网络分支获取，隔离纯函数逻辑
 vi.mock('../src/lib/imageApi.js', () => ({
-  getDefaultBranch: vi.fn(async () => 'main')
+  getDefaultBranch: vi.fn(async () => 'main'),
+  rawUrlToPath: (config, rawUrl) => {
+    const prefix = `https://raw.githubusercontent.com/${config.owner}/${config.repo}/`;
+    if (!rawUrl || !rawUrl.startsWith(prefix)) return null;
+    const parts = rawUrl.slice(prefix.length).split('/');
+    if (parts.length < 2) return null;
+    return parts.slice(1).join('/');
+  }
 }));
 
 // mock GitHub API 网络调用，验证请求体构造（vi.hoisted 避免提升问题）
@@ -24,12 +31,24 @@ import {
   BOARD_DIR,
   boardPath,
   boardNameFromUrl,
-  boardThumbName,
   uploadBoard,
-  uploadBoardThumb,
   getBoardFile,
-  newFileSha
+  newFileSha,
+  boardIframeMarkdown,
+  getBoardHtmlBlobUrl,
+  invalidateBoardHtmlBlob
 } from '../src/lib/boardApi.js';
+
+// node 环境没有 URL.createObjectURL，用全局 stub 模拟 blob URL
+beforeEach(() => {
+  vi.stubGlobal('URL', {
+    createObjectURL: vi.fn(() => 'blob:board-' + Math.random()),
+    revokeObjectURL: vi.fn()
+  });
+});
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 describe('boardName', () => {
   it('生成带 .html 后缀且含时间戳的文件名', () => {
@@ -64,6 +83,19 @@ describe('buildBoardHtml', () => {
     // 转义后不应出现裸的 </script>（闭合标签除外）
     const body = html.split('</script>').slice(0, -1).join('');
     expect(body).not.toContain('</script>');
+  });
+
+  it('独立页包含 quickdraw.css 与容器尺寸样式（否则 iframe 内画布塌缩为 0，图形不可见）', () => {
+    const html = buildBoardHtml({ shapes: [] });
+    expect(html).toContain('https://esm.sh/@quickdrawjs/core@0.2.0/quickdraw.css');
+    expect(html).toContain('html, body { margin: 0; height: 100%; }');
+    expect(html).toContain('#board { width: 100%; height: 100%; }');
+  });
+
+  it('独立页以只读方式创建（隐藏工具栏与水印），避免内嵌 iframe 出现可编辑却无法保存的困惑', () => {
+    const html = buildBoardHtml({ shapes: [] });
+    expect(html).toContain('hideUi: true');
+    expect(html).toContain('watermark: false');
   });
 });
 
@@ -126,17 +158,6 @@ describe('boardNameFromUrl', () => {
   });
 });
 
-describe('boardThumbName', () => {
-  it('从 html 文件名派生同名 .png 缩略图名', () => {
-    expect(boardThumbName('20260101_000000_000.html'))
-      .toBe('20260101_000000_000.png');
-  });
-
-  it('对非 .html 文件名返回 null', () => {
-    expect(boardThumbName('20260101_000000_000.png')).toBeNull();
-  });
-});
-
 describe('boardPath', () => {
   it('构造 whiteboards/ 下路径', () => {
     expect(boardPath('x.html')).toBe('whiteboards/x.html');
@@ -183,30 +204,6 @@ describe('getBoardFile', () => {
   });
 });
 
-describe('uploadBoardThumb', () => {
-  it('PUT PNG 到 whiteboards/ 下同名文件，body 为 base64 图片', async () => {
-    githubFetchMock.mockClear();
-    const config = { owner: 'alice', repo: 'notes', token: 't' };
-    const pngBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAE='; // 1x1 透明 PNG
-    await uploadBoardThumb(config, 'x.png', pngBase64);
-    const [, url, options] = githubFetchMock.mock.calls[0];
-    expect(url).toBe('https://api.github.com/repos/alice/notes/contents/whiteboards/x.png');
-    expect(options.method).toBe('PUT');
-    const body = JSON.parse(options.body);
-    expect(body.content).toBe(pngBase64);
-    expect(body.sha).toBeUndefined();
-  });
-
-  it('传入 sha 时覆盖已有缩略图', async () => {
-    githubFetchMock.mockClear();
-    const config = { owner: 'alice', repo: 'notes', token: 't' };
-    await uploadBoardThumb(config, 'x.png', 'abc', 'sha999');
-    const [, , options] = githubFetchMock.mock.calls[0];
-    const body = JSON.parse(options.body);
-    expect(body.sha).toBe('sha999');
-  });
-});
-
 describe('newFileSha', () => {
   it('从 GitHub Contents API 写入响应提取新 sha（嵌套在 content.sha 下，顶层无 sha）', () => {
     const res = { content: { sha: 'abc123' }, commit: {} };
@@ -218,5 +215,93 @@ describe('newFileSha', () => {
     expect(newFileSha({})).toBeNull();
     expect(newFileSha(null)).toBeNull();
     expect(newFileSha(undefined)).toBeNull();
+  });
+});
+
+describe('boardIframeMarkdown', () => {
+  it('生成 iframe + 打开链接的 markdown', () => {
+    const url = 'https://raw.githubusercontent.com/alice/notes/main/whiteboards/x.html';
+    expect(boardIframeMarkdown(url, 'x')).toBe(
+      `<iframe src="${url}"></iframe>\n\n[✏️ x](${url})`
+    );
+  });
+});
+
+describe('getBoardHtmlBlobUrl / invalidateBoardHtmlBlob', () => {
+  it('拉取白板 html 生成 text/html blob URL，并缓存复用', async () => {
+    const config = { owner: 'alice', repo: 'notes', token: 't' };
+    const url = 'https://raw.githubusercontent.com/alice/notes/main/whiteboards/x.html';
+    githubFetchMock.mockClear().mockResolvedValueOnce({
+      sha: 'abc', content: Buffer.from('<html>board</html>').toString('base64')
+    });
+    const first = await getBoardHtmlBlobUrl(config, url);
+    const second = await getBoardHtmlBlobUrl(config, url); // 命中缓存
+    expect(second).toBe(first);
+    expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
+    const blobArg = URL.createObjectURL.mock.calls[0][0];
+    expect(blobArg.type).toBe('text/html');
+  });
+
+  it('invalidate 后重新拉取并生成新 blob', async () => {
+    const config = { owner: 'alice', repo: 'notes', token: 't' };
+    const url = 'https://raw.githubusercontent.com/alice/notes/main/whiteboards/x.html';
+    githubFetchMock.mockClear().mockResolvedValueOnce({
+      sha: 'a', content: Buffer.from('old').toString('base64')
+    });
+    const first = await getBoardHtmlBlobUrl(config, url);
+    invalidateBoardHtmlBlob(url);
+    githubFetchMock.mockResolvedValueOnce({
+      sha: 'b', content: Buffer.from('new').toString('base64')
+    });
+    const second = await getBoardHtmlBlobUrl(config, url);
+    expect(second).not.toBe(first);
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith(first);
+  });
+
+  it('非本仓库 URL 返回 null', async () => {
+    const config = { owner: 'alice', repo: 'notes', token: 't' };
+    const url = 'https://other.com/whiteboards/x.html';
+    expect(await getBoardHtmlBlobUrl(config, url)).toBeNull();
+  });
+
+  it('并发调用同一 URL 只拉取一次（inflight 去重，不产生孤儿 blob）', async () => {
+    const config = { owner: 'alice', repo: 'notes', token: 't' };
+    const url = 'https://raw.githubusercontent.com/alice/notes/main/whiteboards/dedup.html';
+    githubFetchMock.mockClear().mockResolvedValueOnce({
+      sha: 'abc', content: Buffer.from('<html>b</html>').toString('base64')
+    });
+    const [a, b] = await Promise.all([
+      getBoardHtmlBlobUrl(config, url),
+      getBoardHtmlBlobUrl(config, url)
+    ]);
+    expect(a).toBe(b); // 同一个 blob URL
+    expect(githubFetchMock).toHaveBeenCalledTimes(1); // 只拉取一次
+    expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
+  });
+
+  it('本仓库但非 whiteboards/ 的 URL 返回 null 且不发请求', async () => {
+    const config = { owner: 'alice', repo: 'notes', token: 't' };
+    const url = 'https://raw.githubusercontent.com/alice/notes/main/images/a.png';
+    githubFetchMock.mockClear();
+    expect(await getBoardHtmlBlobUrl(config, url)).toBeNull();
+    expect(githubFetchMock).not.toHaveBeenCalled();
+  });
+
+  it('拉取期间被 invalidate 时，不把旧内容回填缓存（防保存刷新读到旧 blob）', async () => {
+    const config = { owner: 'alice', repo: 'notes', token: 't' };
+    const url = 'https://raw.githubusercontent.com/alice/notes/main/whiteboards/race.html';
+    let resolveFetch;
+    githubFetchMock.mockClear().mockReturnValueOnce(new Promise(res => { resolveFetch = res; }));
+    const pending = getBoardHtmlBlobUrl(config, url); // 拉取挂起中
+    invalidateBoardHtmlBlob(url);                     // 保存刷新：清掉 inflight 与缓存
+    resolveFetch({ sha: 'old', content: Buffer.from('old').toString('base64') });
+    const staleUrl = await pending;
+    // 旧内容不得回填缓存：再次调用应重新拉取（不同 URL），且旧 blob 被释放
+    githubFetchMock.mockResolvedValueOnce({
+      sha: 'new', content: Buffer.from('new').toString('base64')
+    });
+    const freshUrl = await getBoardHtmlBlobUrl(config, url);
+    expect(freshUrl).not.toBe(staleUrl);
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith(staleUrl);
   });
 });

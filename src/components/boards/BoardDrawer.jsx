@@ -7,8 +7,7 @@ import { useBoard } from '../../contexts/BoardContext.jsx';
 import { useNotes } from '../../contexts/NotesContext.jsx';
 import { useGitHubConfig } from '../../contexts/GitHubConfigContext.jsx';
 import { useToast } from '../../contexts/ToastContext.jsx';
-import { boardName, buildBoardHtml, uploadBoard, uploadBoardThumb, getBoardRawUrl, boardThumbName } from '../../lib/boardApi';
-import { blobToBase64 } from '../../lib/imageCompression';
+import { boardName, buildBoardHtml, uploadBoard, getBoardRawUrl, boardIframeMarkdown } from '../../lib/boardApi';
 
 export function BoardDrawer() {
   const { t } = useI18n();
@@ -40,28 +39,9 @@ export function BoardDrawer() {
       const html = buildBoardHtml(snapshot);
       await uploadBoard(config, name, html);
 
-      // 导出 PNG 缩略图并上传（同名 whiteboards/xxx.png）
-      let thumbUrl = null;
-      try {
-        const thumbBlob = await qd.editor.exportImage({ background: true, scale: 2, margin: 48 });
-        if (!thumbBlob) {
-          console.warn('[board thumb] 缩略图导出为空（画布无图形），跳过缩略图上传');
-        } else {
-          const thumbBase64 = await blobToBase64(thumbBlob);
-          const thumbName = boardThumbName(name);
-          await uploadBoardThumb(config, thumbName, thumbBase64);
-          thumbUrl = await getBoardRawUrl(config, thumbName);
-        }
-      } catch (thumbErr) {
-        console.warn('[board thumb] 缩略图导出失败，仍插入白板链接', thumbErr);
-      }
-
       const url = await getBoardRawUrl(config, name);
       const title = name.replace(/\.html$/, '');
-      // 有缩略图时插入嵌套链接（点击图片打开白板）；否则纯链接
-      insertContent(thumbUrl
-        ? `[![✏️ ${title}](${thumbUrl})](${url})`
-        : `[✏️ ${title}](${url})`, 'cursor');
+      insertContent(boardIframeMarkdown(url, title), 'cursor');
       closeDraw();
       showToast(t('board.toast.insert_done'), 'success');
     } catch (e) {

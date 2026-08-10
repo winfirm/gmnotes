@@ -3,7 +3,7 @@ import { useLayoutEffect, useRef, useEffect } from 'react';
 import { useGitHubConfig } from '../contexts/GitHubConfigContext.jsx';
 import { useBoard } from '../contexts/BoardContext.jsx';
 import { getBlobUrlForRaw } from '../lib/imageApi';
-import { BOARD_DIR } from '../lib/boardApi';
+import { BOARD_DIR, getBoardHtmlBlobUrl } from '../lib/boardApi';
 
 // mermaid 运行时懒加载（CDN），避免打包进 singlefile 产物(import mermaid异常无法运行)
 let mermaidInstance = null;
@@ -39,8 +39,8 @@ async function loadMermaid() {
 
 export function PreviewPane({ html }) {
   const { githubConfigRef, githubReady, configVersion } = useGitHubConfig();
-  // openViewer 用于点击白板链接；lastSavedThumb 驱动缩略图即时刷新（context 状态，必被响应）
-  const { openViewer, lastSavedThumb } = useBoard();
+  // openViewer 用于点击白板链接；lastSavedBoard 驱动内嵌 iframe 即时刷新（context 状态，必被响应）
+  const { openViewer, lastSavedBoard } = useBoard();
   const containerRef = useRef(null);
   const prevHtmlRef = useRef(null);
 
@@ -58,9 +58,10 @@ export function PreviewPane({ html }) {
       const prefix = `https://raw.githubusercontent.com/${config.owner}/${config.repo}/`;
       if (!href.startsWith(prefix) || !href.includes('/' + BOARD_DIR + '/')) return;
       e.preventDefault();
-      // 嵌套图片链接的标题取自 alt，纯文本链接取 textContent
+      // 嵌套图片链接的标题取自 alt，纯文本链接取 textContent（去掉插入时的 ✏️ 前缀，查看器标题自带）
       const img = a.querySelector('img');
-      const title = img ? (img.alt || '') : (a.textContent.trim() || '');
+      const rawTitle = img ? (img.alt || '') : (a.textContent.trim() || '');
+      const title = rawTitle.replace(/^✏️\s*/, '');
       openViewer(a.href, title);
     };
 
@@ -86,32 +87,41 @@ export function PreviewPane({ html }) {
     });
   }, [html, githubReady, configVersion]);
 
-  // 1b. 白板保存后，立即把新缩略图注入预览（context 状态驱动，确定性触发；blob 直传零网络）
-  //     无新 blob（缩略图导出/上传失败）时走 token API 重拉仓库最新；绝不把 img.src 设回 raw URL（私库 403）
+  // 1c. 白板 iframe 内嵌：token 拉取 html → text/html blob → 替换 src（缓存复用，仅本仓库 whiteboards/）
   useLayoutEffect(() => {
-    if (!lastSavedThumb || !lastSavedThumb.thumbRawUrl) return;
-    const d = lastSavedThumb;
+    const container = containerRef.current;
+    if (!container || !githubReady) return;
+    const config = githubConfigRef.current;
+    const prefix = `https://raw.githubusercontent.com/${config.owner}/${config.repo}/`;
+    container.querySelectorAll('iframe').forEach((frame) => {
+      if (frame.src.startsWith('blob:')) return;
+      const rawUrl = frame.getAttribute('src') || '';
+      if (!rawUrl.startsWith(prefix) || !rawUrl.includes('/' + BOARD_DIR + '/')) return;
+      frame.dataset.raw = rawUrl;
+      getBoardHtmlBlobUrl(config, rawUrl)
+        .then(url => {
+          // 竞态防护：若保存刷新（1d）已把 src 换成新 blob，则初始拉取的旧 blob 不再覆盖
+          if (url && container.contains(frame) && frame.getAttribute('src') === rawUrl) frame.src = url;
+        })
+        .catch(() => { /* 非白板 URL 或拉取失败，保持原样 */ });
+    });
+  }, [html, githubReady, configVersion]);
+
+  // 1d. 白板保存后刷新内嵌 iframe：缓存已在保存方失效，重新拉取新 html
+  useLayoutEffect(() => {
+    if (!lastSavedBoard || !lastSavedBoard.boardRawUrl) return;
+    const d = lastSavedBoard;
     const container = containerRef.current;
     if (!container) return;
     const config = githubConfigRef.current;
-    let matched = 0;
-    container.querySelectorAll('img').forEach((img) => {
-      const raw = img.dataset.raw || img.getAttribute('src') || '';
-      if (!raw || raw !== d.thumbRawUrl) return;
-      matched++;
-      if (d.blobUrl) {
-        console.log('[preview] 白板缩略图已注入（blob 直传）', raw.slice(-30));
-        img.src = d.blobUrl;
-      } else {
-        // blob 缓存已由保存方失效，此拉取即仓库最新内容
-        console.log('[preview] 白板缩略图重载（token API）', raw.slice(-30));
-        getBlobUrlForRaw(config, raw)
-          .then(url => { if (url && container.contains(img)) img.src = url; })
-          .catch(() => {});
-      }
+    container.querySelectorAll('iframe').forEach((frame) => {
+      const raw = frame.dataset.raw || frame.getAttribute('src') || '';
+      if (raw !== d.boardRawUrl) return;
+      getBoardHtmlBlobUrl(config, raw)
+        .then(url => { if (url && container.contains(frame)) frame.src = url; })
+        .catch(() => console.warn('[preview] 白板 iframe 刷新失败', raw.slice(-30)));
     });
-    console.log('[preview] 保存事件处理：', { thumbRawUrl: d.thumbRawUrl, hasBlob: !!d.blobUrl, matched, imgCount: container.querySelectorAll('img').length });
-  }, [lastSavedThumb]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [lastSavedBoard]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 2. Mermaid 渲染：html 变化时懒加载并运行
   useEffect(() => {

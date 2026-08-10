@@ -6,8 +6,8 @@ const BoardContext = createContext(null);
 export function BoardProvider({ children }) {
   const [showDraw, setShowDraw] = useState(false);
   const [viewer, setViewer] = useState(null); // { url, title } 或 null
-  // 最近一次保存成功的白板缩略图信息 { thumbRawUrl, blobUrl }，预览据此立即刷新缩略图
-  const [lastSavedThumb, setLastSavedThumb] = useState(null);
+  // 最近一次保存成功的白板信息 { boardRawUrl }，预览据此立即刷新内嵌 iframe
+  const [lastSavedBoard, setLastSavedBoard] = useState(null);
 
   const openDraw = useCallback(() => setShowDraw(true), []);
   const closeDraw = useCallback(() => setShowDraw(false), []);
@@ -15,13 +15,13 @@ export function BoardProvider({ children }) {
   const openViewer = useCallback((url, title) => setViewer({ url, title }), []);
   const closeViewer = useCallback(() => setViewer(null), []);
 
-  const notifyBoardSaved = useCallback((info) => setLastSavedThumb(info), []);
+  const notifyBoardSaved = useCallback((info) => setLastSavedBoard(info), []);
 
   const value = useMemo(() => ({
     showDraw, openDraw, closeDraw,
     viewer, openViewer, closeViewer,
-    lastSavedThumb, notifyBoardSaved
-  }), [showDraw, openDraw, closeDraw, viewer, openViewer, closeViewer, lastSavedThumb, notifyBoardSaved]);
+    lastSavedBoard, notifyBoardSaved
+  }), [showDraw, openDraw, closeDraw, viewer, openViewer, closeViewer, lastSavedBoard, notifyBoardSaved]);
 
   return <BoardContext.Provider value={value}>{children}</BoardContext.Provider>;
 }

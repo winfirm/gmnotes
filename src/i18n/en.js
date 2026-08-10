@@ -158,7 +158,6 @@ export const en = {
     'board.toast.save_done': 'Whiteboard saved',
     'board.toast.save_failed': 'Save failed: ',
     'board.toast.load_failed': 'Failed to load whiteboard: ',
-    'board.toast.thumb_failed': 'Thumbnail update failed; the repo still has the old image (board saved)',
     'dir.root': 'Root',
     'format.just_now': 'just now',
     'format.minutes_ago': ' minutes ago',

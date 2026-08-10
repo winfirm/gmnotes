@@ -1,7 +1,7 @@
 // 白板(quickdraw) API：生成自包含 HTML、上传到 GitHub whiteboards/、读取与提取
 import { utf8ToBase64, base64ToUtf8 } from './base64';
 import { githubFetch, apiBase } from './githubApi';
-import { getDefaultBranch } from './imageApi';
+import { getDefaultBranch, rawUrlToPath } from './imageApi';
 
 export const BOARD_DIR = 'whiteboards';
 
@@ -32,13 +32,15 @@ export function buildBoardHtml(snapshot) {
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>✏️ 白板</title>
+<style>html, body { margin: 0; height: 100%; } #board { width: 100%; height: 100%; }</style>
+<link rel="stylesheet" href="https://esm.sh/@quickdrawjs/core@0.2.0/quickdraw.css" />
 </head>
 <body>
 <div id="board"></div>
 <script type="module">
 import { createQuickdraw } from 'https://esm.sh/@quickdrawjs/core@0.2.0';
 const saved = ${escapeJsonForScript(snapshot || {})};
-const board = createQuickdraw({ container: document.getElementById('board') });
+const board = createQuickdraw({ container: document.getElementById('board'), hideUi: true, watermark: false });
 if (saved && typeof saved === 'object' && Object.keys(saved).length > 0) {
   board.editor.store.loadSnapshot(saved, 'remote');
 }
@@ -83,31 +85,12 @@ export function boardNameFromUrl(rawUrl) {
   return rawUrl.slice(idx + BOARD_DIR.length + 2);
 }
 
-/** 从 html 白板名派生同名 .png 缩略图名；非 .html 返回 null */
-export function boardThumbName(boardFileName) {
-  if (!boardFileName || !boardFileName.toLowerCase().endsWith('.html')) return null;
-  return boardFileName.slice(0, -5) + '.png';
-}
-
 // ---- 上传 ----
 // 传入 sha 时更新已有文件（覆盖），否则创建新文件
 export async function uploadBoard(config, name, html, sha) {
   const body = {
     message: 'Update whiteboard via GMNotes',
     content: utf8ToBase64(html)
-  };
-  if (sha) body.sha = sha;
-  return githubFetch(config, apiBase(config) + '/' + boardPath(name), {
-    method: 'PUT',
-    body: JSON.stringify(body)
-  });
-}
-
-// 上传/覆盖 PNG 缩略图（内容已为 base64）
-export async function uploadBoardThumb(config, name, pngBase64, sha) {
-  const body = {
-    message: 'Update whiteboard thumbnail via GMNotes',
-    content: pngBase64
   };
   if (sha) body.sha = sha;
   return githubFetch(config, apiBase(config) + '/' + boardPath(name), {
@@ -123,7 +106,7 @@ export function newFileSha(res) {
 }
 
 /** PUT 覆盖文件；若 GitHub 因 sha 过期拒绝（409 sha 不匹配 / 422），重新拉取最新 sha 后重试一次。
- * uploadFn 为 uploadBoard（html）或 uploadBoardThumb（png），签名统一为 (config, name, content, sha)。 */
+ * uploadFn 为 uploadBoard（html），签名统一为 (config, name, content, sha)。 */
 export async function uploadBoardWithShaRetry(config, name, content, sha, uploadFn) {
   try {
     return await uploadFn(config, name, content, sha);
@@ -144,4 +127,54 @@ export async function getBoardFile(config, name) {
     sha: data.sha,
     html: typeof data.content === 'string' ? base64ToUtf8(data.content) : ''
   };
+}
+
+// ---- 白板 html blob 缓存（预览内嵌 iframe 用） ----
+const MAX_BOARD_HTML_CACHE = 20;
+const boardHtmlBlobCache = new Map(); // rawUrl -> blobUrl
+const boardHtmlInflight = new Map(); // rawUrl -> Promise<blobUrl>
+
+/** 拉取白板 html 并生成 text/html blob URL（带缓存与并发去重）；非白板 URL 返回 null */
+export async function getBoardHtmlBlobUrl(config, rawUrl) {
+  if (boardHtmlBlobCache.has(rawUrl)) return boardHtmlBlobCache.get(rawUrl);
+  if (boardHtmlInflight.has(rawUrl)) return boardHtmlInflight.get(rawUrl);
+  const name = boardNameFromUrl(rawUrl);
+  if (!name || !rawUrlToPath(config, rawUrl)) return null;
+  const p = (async () => {
+    const file = await getBoardFile(config, name);
+    const url = URL.createObjectURL(new Blob([file.html], { type: 'text/html' }));
+    // 拉取期间若已被 invalidate（如保存刷新），不得把旧内容回填缓存，释放新 blob 即可
+    if (boardHtmlInflight.get(rawUrl) !== p) {
+      URL.revokeObjectURL(url);
+      return url;
+    }
+    boardHtmlBlobCache.set(rawUrl, url);
+    if (boardHtmlBlobCache.size > MAX_BOARD_HTML_CACHE) {
+      const oldest = boardHtmlBlobCache.keys().next().value;
+      URL.revokeObjectURL(boardHtmlBlobCache.get(oldest));
+      boardHtmlBlobCache.delete(oldest);
+    }
+    return url;
+  })();
+  boardHtmlInflight.set(rawUrl, p);
+  try {
+    return await p;
+  } finally {
+    boardHtmlInflight.delete(rawUrl);
+  }
+}
+
+/** 使白板 html 的 blob 缓存失效（保存覆盖后调用，预览 iframe 才会重拉新内容） */
+export function invalidateBoardHtmlBlob(rawUrl) {
+  const url = boardHtmlBlobCache.get(rawUrl);
+  if (url) {
+    URL.revokeObjectURL(url);
+    boardHtmlBlobCache.delete(rawUrl);
+  }
+  boardHtmlInflight.delete(rawUrl);
+}
+
+/** 内嵌 iframe + 打开链接的 markdown */
+export function boardIframeMarkdown(url, title) {
+  return `<iframe src="${url}"></iframe>\n\n[✏️ ${title}](${url})`;
 }

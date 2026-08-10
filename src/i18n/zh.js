@@ -158,7 +158,6 @@ export const zh = {
     'board.toast.save_done': '白板已保存',
     'board.toast.save_failed': '保存失败: ',
     'board.toast.load_failed': '加载白板失败: ',
-    'board.toast.thumb_failed': '缩略图更新失败，仓库中仍为旧图（白板内容已保存）',
     'dir.root': '根目录',
     'format.just_now': '刚刚',
     'format.minutes_ago': '分钟前',
