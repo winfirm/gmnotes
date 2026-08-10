@@ -40,7 +40,8 @@ export function buildBoardHtml(snapshot) {
 <script type="module">
 import { createQuickdraw } from 'https://esm.sh/@quickdrawjs/core@0.2.0';
 const saved = ${escapeJsonForScript(snapshot || {})};
-const board = createQuickdraw({ container: document.getElementById('board'), hideUi: true, watermark: false });
+// readonly：该 HTML 仅用于 markdown 预览展示（编辑在应用内 Quickdraw 组件进行），禁止在 iframe 内绘图
+const board = createQuickdraw({ container: document.getElementById('board'), hideUi: true, readonly: true, watermark: false });
 if (saved && typeof saved === 'object' && Object.keys(saved).length > 0) {
   board.editor.store.loadSnapshot(saved, 'remote');
 }
@@ -174,7 +175,7 @@ export function invalidateBoardHtmlBlob(rawUrl) {
   boardHtmlInflight.delete(rawUrl);
 }
 
-/** 内嵌 iframe + 打开链接的 markdown */
+/** 内嵌 iframe（禁止拖拽）+ 打开链接的 markdown */
 export function boardIframeMarkdown(url, title) {
-  return `<iframe src="${url}"></iframe>\n\n[✏️ ${title}](${url})`;
+  return `<iframe src="${url}" draggable="false"></iframe>\n\n[✏️ ${title}](${url})`;
 }
