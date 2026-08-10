@@ -64,9 +64,20 @@ describe('PreviewPane iframe 内嵌', () => {
     getBoardHtmlBlobUrlMock.mockResolvedValue('blob:board-1');
     render(<PreviewPane html={html + '<iframe src="https://other.com/whiteboards/y.html"></iframe><iframe src="blob:already"></iframe>'} />);
     await waitFor(() => expect(document.querySelectorAll('iframe')[0].src).toBe('blob:board-1'));
-    // 非本仓库 URL：从未被处理（src 保持原样），getBoardHtmlBlobUrl 未被调用
+    // 非 raw.githubusercontent.com 域名的 iframe：默认加载、不被拦截
     expect(document.querySelectorAll('iframe')[1].src).toBe('https://other.com/whiteboards/y.html');
     expect(getBoardHtmlBlobUrlMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('raw.githubusercontent.com 但非本仓库的 iframe：走缓存路径但返回 null 时保持原样', async () => {
+    getBoardHtmlBlobUrlMock.mockResolvedValue(null); // 内部守卫（非本仓库/非 whiteboards）返回 null
+    const otherRepo = '<iframe src="https://raw.githubusercontent.com/other/repo/main/whiteboards/y.html"></iframe>';
+    render(<PreviewPane html={html + otherRepo} />);
+    // 本仓库 iframe 拿到 null 也保持原样
+    await waitFor(() => expect(getBoardHtmlBlobUrlMock).toHaveBeenCalledTimes(2));
+    const frames = document.querySelectorAll('iframe');
+    expect(frames[0].src).toBe(RAW);
+    expect(frames[1].src).toBe('https://raw.githubusercontent.com/other/repo/main/whiteboards/y.html');
   });
 
   it('保存后新 blob 先返回时，初始拉取的旧 blob 不覆盖新 blob（竞态防护）', async () => {

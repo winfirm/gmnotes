@@ -87,16 +87,16 @@ export function PreviewPane({ html }) {
     });
   }, [html, githubReady, configVersion]);
 
-  // 1c. 白板 iframe 内嵌：token 拉取 html → text/html blob → 替换 src（缓存复用，仅本仓库 whiteboards/）
+  // 1c. 内嵌 iframe：仅 raw.githubusercontent.com 域名的 src 走 token 拉取（REST API + blob 缓存）；
+  //     其它域名的 iframe 保持默认加载。是否为本仓库 whiteboards/ 由 getBoardHtmlBlobUrl 内部守卫判定。
   useLayoutEffect(() => {
     const container = containerRef.current;
     if (!container || !githubReady) return;
     const config = githubConfigRef.current;
-    const prefix = `https://raw.githubusercontent.com/${config.owner}/${config.repo}/`;
     container.querySelectorAll('iframe').forEach((frame) => {
       if (frame.src.startsWith('blob:')) return;
       const rawUrl = frame.getAttribute('src') || '';
-      if (!rawUrl.startsWith(prefix) || !rawUrl.includes('/' + BOARD_DIR + '/')) return;
+      if (!rawUrl.startsWith('https://raw.githubusercontent.com/')) return;
       frame.dataset.raw = rawUrl;
       getBoardHtmlBlobUrl(config, rawUrl)
         .then(url => {
