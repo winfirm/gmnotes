@@ -13,6 +13,7 @@ export const zh = {
     'sidebar.title.tooltip': '从 GitHub 同步',
     'sidebar.config.tooltip': 'GitHub 配置',
     'sidebar.delete.tooltip': '删除',
+    'sidebar.delete.confirm': '删除后无法恢复,确定删除吗? \n[{title}]',
     'editor.title_placeholder': '笔记标题',
     'editor.content_placeholder': '在此输入 Markdown 内容...',
     'editor.menu.tooltip': '菜单',

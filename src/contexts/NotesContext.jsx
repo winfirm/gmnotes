@@ -212,6 +212,10 @@ export function NotesProvider({ children }) {
   }, [currentNote, debounced]);
 
   const deleteNote = useCallback(async (note) => {
+    // 删除不可恢复，必须先经用户确认
+    if (!window.confirm(
+      t('sidebar.delete.confirm').replace('{title}', note.title || t('sidebar.untitled'))
+    )) return;
     const config = githubConfigRef.current;
     // 从列表移除
     let nextNotes = [];

@@ -13,6 +13,7 @@ export const en = {
     'sidebar.title.tooltip': 'Sync from GitHub',
     'sidebar.config.tooltip': 'GitHub Config',
     'sidebar.delete.tooltip': 'Delete',
+    'sidebar.delete.confirm': 'Note deletion cannot be undone. Delete? \n[{title}]',
     'editor.title_placeholder': 'Note title',
     'editor.content_placeholder': 'Enter Markdown content here...',
     'editor.menu.tooltip': 'Menu',
