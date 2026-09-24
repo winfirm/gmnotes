@@ -25,3 +25,32 @@
 }
 .ai-config-status.connected .status-dot { background: #4caf50; }
 .ai-config-status.disconnected .status-dot { background: #f44336; }
+
+/* API Key 输入行 + 显示/隐藏切换 */
+.ai-config-key-row {
+  display: flex;
+  gap: 8px;
+}
+.ai-config-key-row input {
+  flex: 1;
+  min-width: 0;
+}
+.ai-config-key-toggle {
+  flex-shrink: 0;
+  height: 40px;
+  padding: 0 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-dim);
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition);
+}
+.ai-config-key-toggle:hover {
+  border-color: var(--text-dim);
+  color: var(--text);
+}
+

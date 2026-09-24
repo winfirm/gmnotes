@@ -7,6 +7,14 @@ import { DEFAULT_AI_ENDPOINT, AI_STORAGE_KEY } from '../constants';
 
 const AiContext = createContext(null);
 
+// 构建请求头：apiKey 非空时附加 Bearer 鉴权
+function buildHeaders(apiKey) {
+  const headers = { 'Content-Type': 'application/json' };
+  const key = (apiKey || '').trim();
+  if (key) headers.Authorization = `Bearer ${key}`;
+  return headers;
+}
+
 export function AiProvider({ children }) {
   const { showToast } = useToast();
   const { t, locale } = useI18n();
@@ -16,6 +24,7 @@ export function AiProvider({ children }) {
   const [aiConfig, setAiConfig] = useState({
     endpoint: DEFAULT_AI_ENDPOINT,
     model: '',
+    apiKey: '',
     tested: false,
     testSuccess: false
   });
@@ -42,7 +51,8 @@ export function AiProvider({ children }) {
         setAiConfig(prev => ({
           ...prev,
           endpoint: c.endpoint || DEFAULT_AI_ENDPOINT,
-          model: c.model || ''
+          model: c.model || '',
+          apiKey: c.apiKey || ''
         }));
       }
     } catch (e) {}
@@ -55,7 +65,8 @@ export function AiProvider({ children }) {
   const saveAiConfig = useCallback(() => {
     const c = {
       endpoint: aiConfig.endpoint.trim() || DEFAULT_AI_ENDPOINT,
-      model: aiConfig.model.trim()
+      model: aiConfig.model.trim(),
+      apiKey: aiConfig.apiKey.trim()
     };
     try { localStorage.setItem(AI_STORAGE_KEY, JSON.stringify(c)); } catch (e) {}
     setAiConfig(prev => ({ ...prev, tested: false, testSuccess: false }));
@@ -69,7 +80,7 @@ export function AiProvider({ children }) {
       const modelsUrl = endpoint.replace('/chat/completions', '/models');
       const res = await fetch(modelsUrl, {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
+        headers: buildHeaders(aiConfig.apiKey),
         signal: AbortSignal.timeout(5000)
       });
       setAiConfig(prev => ({ ...prev, tested: true, testSuccess: res.ok }));
@@ -83,7 +94,7 @@ export function AiProvider({ children }) {
       showToast(t('toast.ai_connect_failed') + (e.message || ''), 'error');
       console.error('[testAiConnection]', e);
     }
-  }, [aiConfig.endpoint, showToast, t]);
+  }, [aiConfig.endpoint, aiConfig.apiKey, showToast, t]);
 
   const openAiConfig = useCallback(() => {
     setShowAiConfig(true);
@@ -163,7 +174,7 @@ export function AiProvider({ children }) {
     try {
       const res = await fetch(aiConfig.endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: buildHeaders(aiConfig.apiKey),
         body: JSON.stringify(body),
         signal: abortRef.current.signal
       });
